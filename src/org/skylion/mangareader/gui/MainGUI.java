@@ -82,7 +82,7 @@ public class MainGUI extends JFrame {
 	}
 
 	private void initGUI(){
-		setTitle("MangaHere Reader");
+		setTitle("Janga Manga Reader");
 		setBackground(Color.BLACK);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
