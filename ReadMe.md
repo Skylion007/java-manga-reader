@@ -17,7 +17,7 @@ browser because it only downloads the images and nothing else providing for a sl
 	*MangaHere
 
 ##Dependencies
-	JSoup 1.7.2
+	JSoup 1.7.2 or higher
 
 ##Changelog
 See Changelog.markdown
