@@ -13,6 +13,12 @@ browser because it only downloads the images and nothing else providing for a sl
 	*Autofill
 	*Pre-fetching (Coming-Soon) 
 
+##Suppported Websites
+	*MangaHere
+
+##Dependencies
+	JSoup 1.7.2
+
 ##Changelog
 See Changelog.markdown
 
