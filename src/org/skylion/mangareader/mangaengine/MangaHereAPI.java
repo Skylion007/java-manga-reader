@@ -272,7 +272,7 @@ public class MangaHereAPI implements MangaEngine{
 		}
 		url = url.substring(url.lastIndexOf('c'));
 		url = url.substring(1, url.indexOf('/'));
-		return Integer.parseInt(url);
+		return (int)Double.parseDouble(url);//Needed for V2 uploads represented as chapter 1.1
 	}
 	
 	/**
