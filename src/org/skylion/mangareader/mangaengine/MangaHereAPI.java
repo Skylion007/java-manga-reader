@@ -225,7 +225,7 @@ public class MangaHereAPI implements MangaEngine{
 	public List<String> getMangaList(){	
 		Document doc;
 		try {
-			doc = Jsoup.connect("http://www.mangahere.com/mangalist/").get();
+			doc = Jsoup.connect("http://www.mangahere.com/mangalist/").maxBodySize(0).get();
 			Elements items = doc.getElementsByClass("manga_info");
 			List<String> names = new ArrayList<String>();
 			for(Element item: items){
@@ -341,7 +341,7 @@ public class MangaHereAPI implements MangaEngine{
 		Document doc;
 		List<String> chaptersList = new ArrayList<String>();
 		try {
-			doc = Jsoup.connect(mangaURL).get();
+			doc = Jsoup.connect(mangaURL).maxBodySize(0).get();
 			Elements chapters = doc.getElementsByClass("color_0077");
 			for(Element item: chapters){
 				//Checks if the link contains the manga name and a number. 
@@ -401,7 +401,7 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	private String[][] initalizeMangaList() throws Exception{
 		String[][] out;
-		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").get();
+		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").maxBodySize(0).get();
 		Elements items = doc.getElementsByClass("manga_info");
 		out = new String[2][items.size()];
 		for(int i = 0; i<items.size(); i++){
