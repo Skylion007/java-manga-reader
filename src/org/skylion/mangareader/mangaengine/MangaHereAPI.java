@@ -128,23 +128,42 @@ public class MangaHereAPI implements MangaEngine{
 		//Special Case: End of Chapter
 		if(e== null || nextURL == null || nextURL.equals("") || nextURL.equals("javascript:void(0)")){
 			//System.out.println("Next Chapter");
-			Elements exs = doc.getElementsByClass("reader_tip").first().children();
-			Element ex = exs.get(exs.size()-2);
-			String extract = ex.html();//Element is not properly closed. Manually parsing required
-			if(extract.indexOf("href=\"")==-1){//First Chapter: Special Case
-				ex = exs.get(exs.size()-1);
-				extract = ex.html();
-			}
-			//Manually extracts the HREF
-			extract = extract.substring(extract.indexOf("href=\""));
-			extract = extract.substring(extract.indexOf('"')+1);
-			extract = extract.substring(0,extract.indexOf('"'));
-			//TODO Update parsing with Regex
-			nextURL = extract;
+			nextURL = getNextChapter(doc);
 		}
 		return nextURL;
 	}
 
+	/**
+	 * Gets the next chapter
+	 * @return
+	 */
+	public String getNextChapter(){
+		try {
+			return getNextChapter(Jsoup.connect(currentURL).get());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+			
+		}
+	}
+	
+	private String getNextChapter(Document doc){
+		Elements exs = doc.getElementsByClass("reader_tip").first().children();
+		Element ex = exs.get(exs.size()-2);
+		String extract = ex.html();//Element is not properly closed. Manually parsing required
+		if(extract.indexOf("href=\"")==-1){//First Chapter: Special Case
+			ex = exs.get(exs.size()-1);
+			extract = ex.html();
+		}
+		//Manually extracts the HREF
+		extract = extract.substring(extract.indexOf("href=\""));
+		extract = extract.substring(extract.indexOf('"')+1);
+		extract = extract.substring(0,extract.indexOf('"'));
+		//TODO Update parsing with Regex
+		return extract;
+	}
+	
 	/**
 	 * Fetches the previous page as specified by links on the current page
 	 * If at page 0 chapter 1, goes to Chapter 2.
@@ -159,13 +178,7 @@ public class MangaHereAPI implements MangaEngine{
 			//Special Case: Beginning of Chapter
 			if(e== null || backPage == null || backPage.equals("") || backPage.equals("javascript:void(0)")){
 				//System.out.println("Previous Chapter");
-				Elements exs = doc.getElementsByClass("reader_tip").first().children();
-				Element ex = exs.get(exs.size()-1);
-				String extract = ex.html();//Element not closed properly. Manual parsing required.
-				extract = extract.substring(extract.indexOf("href=\""));
-				extract = extract.substring(extract.indexOf('"')+1);
-				extract = extract.substring(0,extract.indexOf('"'));
-				backPage = extract;
+				backPage = getPreviousChapter(doc);
 			}
 			return backPage;
 		}
@@ -175,6 +188,36 @@ public class MangaHereAPI implements MangaEngine{
 		return null;
 	}
 
+	/**
+	 * Fetches the previous chapter
+	 * @return The URL for the previous chapter
+	 */
+	public String getPreviousChapter(){
+		try {
+			return getPreviousChapter(Jsoup.connect(currentURL).get());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Overloaded method to conserve resources
+	 * @param doc
+	 * @return
+	 */
+	private String getPreviousChapter(Document doc){
+		Elements exs = doc.getElementsByClass("reader_tip").first().children();
+		Element ex = exs.get(exs.size()-1);
+		String extract = ex.html();//Element not closed properly. Manual parsing required.
+		extract = extract.substring(extract.indexOf("href=\""));
+		extract = extract.substring(extract.indexOf('"')+1);
+		extract = extract.substring(0,extract.indexOf('"'));
+		return extract;
+
+	}
+	
 	/**
 	 * Generates a list of all available manga on the site
 	 * @return the list as a List<String>
@@ -272,7 +315,7 @@ public class MangaHereAPI implements MangaEngine{
 		}
 		url = url.substring(url.lastIndexOf('c'));
 		url = url.substring(1, url.indexOf('/'));
-		return (int)Double.parseDouble(url);//Needed for V2 uploads represented as chapter 1.1
+		return (int)Double.parseDouble(url);//Rounds to an int. Needed for v2 uploads and such.
 	}
 	
 	/**

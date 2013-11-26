@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -59,7 +61,21 @@ public class AutoSuggestor {
         this.container = mainWindow;
         this.suggestionFocusedColor = suggestionFocusedColor;
         this.textField.getDocument().addDocumentListener(documentListener);
+      
+        //WorkAround for anomalous behavior on Mac with default L&F
+        this.textField.addFocusListener(new FocusListener(){
+        	 
+        		public void focusGained(FocusEvent e) {
+        			getTextField().getHighlighter().removeAllHighlights();
+        	    }
 
+        	    @Override
+        	    public void focusLost(FocusEvent e) {
+        	    	getTextField().getHighlighter().removeAllHighlights();
+        	    }
+
+        });
+        
         setDictionary(words);
 
         typedWord = "";
@@ -145,6 +161,8 @@ public class AutoSuggestor {
                     autoSuggestionPopUpWindow.setVisible(false);
                     setFocusToTextField();
                     checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
+                    setFocusToTextField();
+                    
                 }
             }
         });
@@ -154,6 +172,7 @@ public class AutoSuggestor {
         container.toFront();
         container.requestFocusInWindow();
         textField.requestFocusInWindow();
+        textField.getHighlighter().removeAllHighlights();
     }
 
     public List<SuggestionLabel> getAddedSuggestionLabels() {
@@ -210,7 +229,13 @@ public class AutoSuggestor {
     }
 
     private void showPopUpWindow() {
-        autoSuggestionPopUpWindow.getContentPane().add(suggestionsPanel);
+        
+    	//Special case for MAC OS where it autoselects if the window spawns the first letter.
+    	if(textField.getText().length()==1 && System.getProperty("os.name").contains("os")){
+    		return;
+    	}
+    	
+    	autoSuggestionPopUpWindow.getContentPane().add(suggestionsPanel);
         autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth(), 30));
         autoSuggestionPopUpWindow.setSize(tW, tH);
         autoSuggestionPopUpWindow.setVisible(true);
@@ -225,8 +250,12 @@ public class AutoSuggestor {
             windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getHeight();
         }
 
-        autoSuggestionPopUpWindow.setLocation(windowX, windowY);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth(), 30));
+        
+        
+        //Minor adjustment made to keep the suggestion box smaller than the JTextField
+        autoSuggestionPopUpWindow.setLocation(windowX+(int)(getTextField().getSize().width*.0025), windowY);
+        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() 
+        		- textField.getInsets().right - textField.getInsets().left, 30));
         autoSuggestionPopUpWindow.revalidate();
         autoSuggestionPopUpWindow.repaint();
 
