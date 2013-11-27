@@ -4,9 +4,8 @@
 Janga is a multi-platform manga reader written in Java. The program works by using content from the custom-written 
 APIs.  Just type in the name of your favorite manga and be reading in seconds. 
 
-
-The program works much faster than your
-browser because it only downloads the images and nothing else providing for a sleek and fast experience.
+The program works much faster than your browser because it only downloads the images and nothing else providing for 
+a sleek, intuitive experience. 
 
 ##Features
 	* Automatic page resizing
@@ -19,6 +18,7 @@ browser because it only downloads the images and nothing else providing for a sl
 ##Suppported Websites
 	* MangaHere
 	* MangaPanda
+	* MangaReader.net
 
 ##Dependencies
 	* JSoup 1.7.2 or higher
