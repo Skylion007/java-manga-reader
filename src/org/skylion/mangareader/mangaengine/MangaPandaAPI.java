@@ -16,11 +16,8 @@ import org.skylion.mangareader.mangaengine.MangaEngine;
 import org.skylion.mangareader.util.StretchIconHQ;
 
 /**
- * An unofficial API of MangaPanda written by the developers of Janga. The API allows for the traversal of
- * various manga on the site. 
- * 
- * This API is not supported by MangaPanda in anyway and is subject to breakage at any time.
- * @author (Skylion) Aaron Gokaslan
+ * An unofficial API of MangaPanda written by the developers of this program.
+ * @author Aaron Gokaslan
  */
 public class MangaPandaAPI implements MangaEngine{
 
@@ -36,7 +33,7 @@ public class MangaPandaAPI implements MangaEngine{
 	private String[][] mangaList; //List of Manga
 
 	/**
-	 * URLs for the pages and chapter
+	 * URLs
 	 */
 	private String[] pageURLs;
 	private String[] chapterURLs;
@@ -188,6 +185,7 @@ public class MangaPandaAPI implements MangaEngine{
 	public String getMangaName(){
 		return getMangaName(currentURL);
 	}
+
 	/**
 	 * Generates the name of the manga from the URL
 	 */
@@ -195,9 +193,16 @@ public class MangaPandaAPI implements MangaEngine{
 		String name = URL.substring(0,URL.lastIndexOf("/"));
 		name = name.substring(0, name.lastIndexOf('/'));
 		name = name.substring(name.lastIndexOf("/")+1);
+		if(isMangaHash(name)){//If it's a MangaHash, we have to parse the /after it
+			name = URL.replace(MANGA_PANDA_URL, "");
+			name = name.substring(0, name.lastIndexOf('/'));
+			name = name.substring(name.lastIndexOf("/")+1);
+			
+		}
 		name = name.replace('-', ' ');
 		return name;
 	}
+
 
 	/**
 	 * Returns the list of chapters from current manga
@@ -322,18 +327,38 @@ public class MangaPandaAPI implements MangaEngine{
 	 * @return The calculated number
 	 */
 	private int getChapNum(String URL){
-		String check = URL.replace(MANGA_PANDA_URL, "");
-		check = check.substring(0,check.indexOf('/'));
-		if(isMangaHash(check)){//There are two types of ways of delineating Manga on the site
-			String chapter = check.substring(check.indexOf('-')+1,check.lastIndexOf('-'));
-			return (int)Double.parseDouble(chapter);//Allows for chapter split into multiple parts (1.1,1.2)
+		if(hasMangaHash(URL)){//There are two types of ways of delineating Manga on the site
+			String chapter = URL.replace(MANGA_PANDA_URL, "");
+			chapter = chapter.substring(0,chapter.indexOf("/"));
+			chapter = chapter.substring(chapter.indexOf('-')+1, chapter.lastIndexOf('-'));
+			return (int)Double.parseDouble(chapter);
 		}
 		else{
 			String number = URL.substring(0,URL.lastIndexOf('/'));
 			number = number.substring(number.lastIndexOf('/')+1);
+			if(!containsNum(number)){//In case it grabs the name instead. Special first page case
+				number = URL.substring(URL.lastIndexOf('/')+1);
+			}
 			return (int)Double.parseDouble(number);
 		}
 	}
+	
+	/**
+	 * Checks if the number contains MangaHashes
+	 * @param URL
+	 * @return
+	 */
+	private boolean hasMangaHash(String URL){
+		String end = URL.replace(MANGA_PANDA_URL, "");
+		String[] pieces = end.split("/");
+		for(String s: pieces){
+			if(isMangaHash(s)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	
 	/**
 	 * Checks if it's uses a manga hash to store data about the manga.
@@ -346,7 +371,24 @@ public class MangaPandaAPI implements MangaEngine{
 				return false;
 			}
 		}
+		if(!input.contains("-")){//To prevent page/chapter num from false positives
+			return false;
+		}
 		return true;
+	}
+	
+	/**
+	 * Checks if it contains a number
+	 * @param input The String you want to check
+	 * @return True if it does, false otherwise
+	 */
+	private boolean containsNum(String input){
+		for(char c: input.toCharArray()){
+			if(Character.isDigit(c)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -379,8 +421,12 @@ public class MangaPandaAPI implements MangaEngine{
 	
 
 	/**
-	 * Generates a list of all the current chapters in the current manga
-	 * @return A String[] of all current chapters in the manga. Null is request cannot be completed
+	 * Generates a list of all the current chapters in the current Manga
+	 * @return A String[] of all current chapters in the manga.
+	 */
+	/**
+	 * Generates a list of all the current chapters in the current Manga
+	 * @return A String[] of all current chapters in the manga.
 	 */
 	private String[] initializeChapterList() {
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
@@ -389,8 +435,9 @@ public class MangaPandaAPI implements MangaEngine{
 			Document doc = Jsoup.connect(baseURL).get();
 			Element list = doc.getElementById("listing");
 			Elements names = list.select("tr");
+			names = names.select("a");
 			for(Element e: names){
-				outList.add(e.text());
+				outList.add(e.absUrl("href"));
 			}
 			String[] out = new String[outList.size()];
 			outList.toArray(out);
@@ -401,5 +448,4 @@ public class MangaPandaAPI implements MangaEngine{
 			return null;
 		}
 	}
-
 }
