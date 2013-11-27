@@ -1,5 +1,6 @@
 package org.skylion.mangareader.gui;
 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -31,7 +32,7 @@ import org.skylion.mangareader.util.*;
 
 /**
  * 
- * A GUI designed for Janga
+ * The Main GUI of Janga
  * @author Skylion
  *
  */
@@ -70,6 +71,9 @@ public class MainGUI extends JFrame {
 	 */
 	private MangaEngine mangaEngine;
 
+	/**
+	 * Constructor
+	 */
 	public MainGUI(){
 		try {
 			mangaEngine = new MangaHereAPI();
@@ -81,15 +85,20 @@ public class MainGUI extends JFrame {
 		initGUI();
 	}
 
+	/**
+	 * Constructor
+	 */
 	private void initGUI(){
 		setTitle("Janga Manga Reader");
 		setBackground(Color.BLACK);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+		//Gets the Pane
 		pane = getContentPane();
 		pane.setLayout(new BorderLayout());
 		pane.setBackground(Color.BLACK);
 
+		//Loads previous and next page buttons
 		previous = new JButton("Previous Page");
 		previous.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -104,6 +113,10 @@ public class MainGUI extends JFrame {
 			}
 		});
 
+		//Sets them to equal size
+		next.setSize(previous.getSize());
+		
+		//The mangaSelect search bar
 		mangaSelect = new JTextField("Type your manga into here");
 		mangaSelect.setEditable(true);
 		mangaSelect.addActionListener(new java.awt.event.ActionListener() {
@@ -115,12 +128,11 @@ public class MainGUI extends JFrame {
 
 
 
-		//Wraps 
+		//Auto-suggestion dropdown wrapper for magnaSelect
 		new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList() , Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);			
-		//AutoCompleteDecorator.decorate(mangaSelect, mangaEngine.getMangaList(), false);
+	
 
-
-		//Gets the Initial Image
+		//Loads Welcome page
 		try {
 			page = new JLabel(new StretchIconHQ((Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader()
 					.getResource("org/skylion/mangareader/resource/WelcomeScreen.png")))));
@@ -130,8 +142,7 @@ public class MainGUI extends JFrame {
 		}
 		page.setPreferredSize(getEffectiveScreenSize());
 
-		//Sets up the Page
-		toolbar = new JPanel();
+		//Loads chapter and page dropdown
 		chapterSel = generateComboBox("Chapter: ", mangaEngine.getChapterList().length);
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -157,19 +168,22 @@ public class MainGUI extends JFrame {
 				}
 			}
 		});
+		
+		//Sets up toolbar
+		toolbar = new JPanel();
 		toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
 		toolbar.add(mangaSelect);
 		toolbar.add(chapterSel);
 		toolbar.add(pageSel);
-		
+	
+		//Adds components
 		pane.add(toolbar, BorderLayout.NORTH);
 		pane.add(next, BorderLayout.EAST);
 		pane.add(previous, BorderLayout.WEST);
 		pane.add(page, BorderLayout.CENTER);
-		//pane.add(mangaSelect,BorderLayout.NORTH);
-		initKeyboard();
 		
-		next.setSize(previous.getSize());
+		//Sets up global keycommands
+		initKeyboard();
 	}
 
 	private void initKeyboard(){
@@ -201,7 +215,7 @@ public class MainGUI extends JFrame {
 		actionMap.put(KeyStroke.getKeyStroke("released PAGE_UP"), nextPageAction);
 		actionMap.put(KeyStroke.getKeyStroke("released PAGE_DOWN"), previousPageAction);
 		
-		//Overrides the KeyboardFocusManager to allow Global key commands.
+		//Overrides the KeyboardFocusManager to allow global key commands.
 		KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 		kfm.addKeyEventDispatcher( new KeyEventDispatcher() {
 			@Override
@@ -242,6 +256,10 @@ public class MainGUI extends JFrame {
 		}
 	}
 
+	/**
+	 * Loads page specified by the URL
+	 * @param image The Icon you want to load in
+	 */
 	private void loadPage(StretchIconHQ image){
 		page.setIcon(image);
 	}
