@@ -16,12 +16,12 @@ a sleek, intuitive experience.
 * Pre-fetching (Coming-Soon) 
 
 ##Suppported Websites
-	* MangaHere
-	* MangaPanda
-	* MangaReader.net
+* MangaHere
+* MangaPanda
+* MangaReader.net
 
 ##Dependencies
-	* JSoup 1.7.2 or higher
+* JSoup 1.7.2 or higher
 
 ##Changelog
 See Changelog.markdown
