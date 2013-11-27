@@ -8,12 +8,12 @@ The program works much faster than your browser because it only downloads the im
 a sleek, intuitive experience. 
 
 ##Features
-	* Automatic page resizing
-	* A search bar
-	* Chapter Select
-	* Page Select
-	* Autofill
-	* Pre-fetching (Coming-Soon) 
+* Automatic page resizing
+* A search bar
+* Chapter Select
+* Page Select
+* Autofill
+* Pre-fetching (Coming-Soon) 
 
 ##Suppported Websites
 	* MangaHere
