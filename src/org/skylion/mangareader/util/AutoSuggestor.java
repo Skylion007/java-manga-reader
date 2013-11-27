@@ -11,7 +11,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -25,6 +28,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
+ * A decoration for JTextFields which allow for a dropdown menu to show possible suggestion based off the values
+ * from an arrayList. Matching is non-strict.
  * @author David, Aaron Gokaslan
  */
 public class AutoSuggestor {
@@ -62,7 +67,8 @@ public class AutoSuggestor {
         this.suggestionFocusedColor = suggestionFocusedColor;
         this.textField.getDocument().addDocumentListener(documentListener);
       
-        //WorkAround for anomalous behavior on Mac with default L&F
+        //WorkAround for anomalous behavior on Macs
+        //Disables automatic highlighting when focused upon
         this.textField.addFocusListener(new FocusListener(){
         	 
         		public void focusGained(FocusEvent e) {
@@ -119,7 +125,7 @@ public class AutoSuggestor {
         suggestionsPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), "Down released");
         suggestionsPanel.getActionMap().put("Down released", new AbstractAction() {
             /**
-			 * 
+			 * Auto-generated serial long
 			 */
 			private static final long serialVersionUID = 7355352173460888575L;
 			int lastFocusableIndex = 0;
@@ -172,7 +178,6 @@ public class AutoSuggestor {
         container.toFront();
         container.requestFocusInWindow();
         textField.requestFocusInWindow();
-        textField.getHighlighter().removeAllHighlights();
     }
 
     public List<SuggestionLabel> getAddedSuggestionLabels() {
@@ -252,10 +257,10 @@ public class AutoSuggestor {
 
         
         
-        //Minor adjustment made to keep the suggestion box smaller than the JTextField
-        autoSuggestionPopUpWindow.setLocation(windowX+(int)(getTextField().getSize().width*.0025), windowY);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() 
-        		- textField.getInsets().right - textField.getInsets().left, 30));
+        //Sets the location with minor adjustments to make it match the JTextField area without the borders
+        autoSuggestionPopUpWindow.setLocation((windowX+(int)(textField.getInsets().left)), windowY);
+        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() - 
+        		textField.getInsets().left - textField.getInsets().right, 30));
         autoSuggestionPopUpWindow.revalidate();
         autoSuggestionPopUpWindow.repaint();
 
@@ -269,8 +274,13 @@ public class AutoSuggestor {
         for (String word : words) {
             dictionary.add(word);
         }
+        //Converts List<String> to remove duplicates
+        Set<String> s = new LinkedHashSet<String>(dictionary);
+        dictionary.clear();
+        dictionary.addAll(s);
+        Collections.sort(dictionary);//The List works much better when sorted
     }
-
+    
     public JWindow getAutoSuggestionPopUpWindow() {
         return autoSuggestionPopUpWindow;
     }
