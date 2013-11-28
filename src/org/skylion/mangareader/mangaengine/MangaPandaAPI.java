@@ -42,7 +42,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 * Constructor
 	 */
 	public MangaPandaAPI(){
-		this("http://www.mangapanda.com/7-jikan-me-rhapsody/3/3");
+		this("http://www.mangapanda.com/384-26019-1/mirai-nikki/chapter-0.html");
 	}
 	
 	/**

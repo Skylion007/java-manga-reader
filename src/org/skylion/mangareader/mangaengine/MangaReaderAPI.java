@@ -42,7 +42,7 @@ public class MangaReaderAPI implements MangaEngine{
 	 * Constructor
 	 */
 	public MangaReaderAPI(){
-		this("http://www.mangareader.net/1758-56638-1/zennou-no-noa/chapter-1.html");
+		this("http://www.mangareader.net/384-26019-1/mirai-nikki/chapter-0.html");
 	}
 	
 	/**

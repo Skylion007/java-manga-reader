@@ -228,7 +228,6 @@ public class Prefetcher implements MangaEngine{
 			parent.getContentPane().remove(progressBar);
 			parent.revalidate();
 			parent.repaint();
-			progressBar = null;
 		}
 	}
 }
