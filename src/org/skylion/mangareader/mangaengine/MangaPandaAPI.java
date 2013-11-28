@@ -278,12 +278,23 @@ public class MangaPandaAPI implements MangaEngine{
 		check = check.substring(0,check.indexOf('/'));
 		if(isMangaHash(check)){//There are two types of ways of delineating Manga on the site
 			String page = check.substring(check.lastIndexOf('-')+1);
-			return (int)Double.parseDouble(page);
+			return (int)Double.parseDouble(getNumOnly(page));
 		}
 		else{
 			String number = currentURL.substring(currentURL.lastIndexOf('/'));
-			return (int)Double.parseDouble(number);
+			return (int)Double.parseDouble(getNumOnly(number));
 		}
+	}
+	
+	//Parser method to remove any junk left behind
+	private String getNumOnly(String input){
+		StringBuilder sb = new StringBuilder(input.length());
+		for(char c: input.toCharArray()){
+			if(Character.isDigit(c) || c=='.' ){//Special Case
+				sb.append(c);
+			}
+		}
+		return sb.toString();
 	}
 
 	/**
