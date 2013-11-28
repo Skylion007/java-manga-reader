@@ -54,6 +54,7 @@ public class MainGUI extends JFrame {
 	private JButton previous;
 
 	private JPanel toolbar;
+	private JLabel currentNum;
 	private JComboBox<String> chapterSel;
 	private JComboBox<String> pageSel;
 	private JComboBox<String> engineSel;
@@ -65,7 +66,7 @@ public class MainGUI extends JFrame {
 	private JLabel page; //That page currently displayed
 
 	private JPanel pageUI;
-
+	
 	/**
 	 * Used to create and store Global Keystroke
 	 */
@@ -180,9 +181,13 @@ public class MainGUI extends JFrame {
 			}
 		});
 		
+		currentNum = new JLabel("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + mangaEngine.getCurrentPageNum());
+		
+		
 		toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
 		//toolbar.setBackground(Color.BLACK);
 		toolbar.add(mangaSelect);
+		toolbar.add(currentNum);
 		toolbar.add(engineSel);
 		toolbar.add(chapterSel);
 		toolbar.add(pageSel);
@@ -273,6 +278,7 @@ public class MainGUI extends JFrame {
 	private void loadPage(String URL){
 		try {
 			loadPage(mangaEngine.loadImg(URL));
+			currentNum.setText("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + mangaEngine.getCurrentPageNum());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -308,16 +314,8 @@ public class MainGUI extends JFrame {
 		else if(index == 2){
 			mangaEngine = new MangaReaderAPI();
 		}
+		loadPage(mangaEngine.getCurrentURL());
 		mangaEngine = new Prefetcher(this, mangaEngine);
-//		else if(index == 3){
-//			mangaEngine = new Prefetcher(new MangaHereAPI());
-//		}
-//		else if(index ==4){
-//			mangaEngine = new Prefetcher(new MangaReaderAPI());
-//		}
-//		else {
-//			mangaEngine = new Prefetcher(new MangaPandaAPI());
-//		}
 	}
 
 	/**

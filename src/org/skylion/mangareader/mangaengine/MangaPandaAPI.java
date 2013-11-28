@@ -338,6 +338,13 @@ public class MangaPandaAPI implements MangaEngine{
 	 * @return The calculated number
 	 */
 	private int getChapNum(String URL){
+		if(URL.contains("chapter")){
+			String test = URL.substring(URL.lastIndexOf('-')+1);
+			if(test.indexOf('.')!=-1){
+				test = test.substring(0, test.indexOf('.'));
+			}
+			return (int)Double.parseDouble(test);
+		}
 		if(hasMangaHash(URL)){//There are two types of ways of delineating Manga on the site
 			String chapter = URL.replace(MANGA_PANDA_URL, "");
 			chapter = chapter.substring(0,chapter.indexOf("/"));
@@ -347,7 +354,7 @@ public class MangaPandaAPI implements MangaEngine{
 		else{
 			String number = URL.substring(0,URL.lastIndexOf('/'));
 			number = number.substring(number.lastIndexOf('/')+1);
-			if(!containsNum(number)){//In case it grabs the name instead. Special first page case
+			if(!containsNum(number)){//In case it grabs the name instead
 				number = URL.substring(URL.lastIndexOf('/')+1);
 			}
 			return (int)Double.parseDouble(number);

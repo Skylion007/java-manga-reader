@@ -328,6 +328,13 @@ public class MangaReaderAPI implements MangaEngine{
 	 * @return The calculated number
 	 */
 	private int getChapNum(String URL){
+		if(URL.contains("chapter")){
+			String test = URL.substring(URL.lastIndexOf('-')+1);
+			if(test.indexOf('.')!=-1){
+				test = test.substring(0, test.indexOf('.'));
+			}
+			return (int)Double.parseDouble(test);
+		}
 		if(hasMangaHash(URL)){//There are two types of ways of delineating Manga on the site
 			String chapter = URL.replace(MANGA_READER_URL, "");
 			chapter = chapter.substring(0,chapter.indexOf("/"));

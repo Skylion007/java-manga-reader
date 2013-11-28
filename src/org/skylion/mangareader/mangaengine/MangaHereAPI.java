@@ -98,10 +98,7 @@ public class MangaHereAPI implements MangaEngine{
 		//Detects whether it is loading a new Manga 
 		boolean hasMangaChanged = !getMangaName(currentURL).equals(getMangaName(url));
 		boolean hasChapterChanged = getCurrentChapNum()!= getChapNum(url);
-		Document doc = Jsoup.connect(url).get();
-		Element e = doc.getElementById("image");
-		String imgUrl = e.absUrl("src");
-		BufferedImage image = ImageIO.read(new URL(imgUrl));
+		BufferedImage image = getImage(url);
 		currentURL = url;
 		if(hasMangaChanged || hasChapterChanged){
 			refreshLists(); //Refreshes Chapter & Page URLs
@@ -110,6 +107,13 @@ public class MangaHereAPI implements MangaEngine{
 	}
 
 
+	public BufferedImage getImage(String URL) throws Exception{
+		Document doc = Jsoup.connect(URL).get();
+		Element e = doc.getElementById("image");
+		String imgUrl = e.absUrl("src");
+		return ImageIO.read(new URL(imgUrl));
+	}
+	
 	/**
 	 * Fetches the URL for the next Page as defined by links within the current page.
 	 */
@@ -304,9 +308,16 @@ public class MangaHereAPI implements MangaEngine{
 	 * Returns the current chapter number
 	 */
 	public int getCurrentChapNum(){
+		if(currentURL.indexOf('c')!=-1){
+			String url = currentURL.substring(currentURL.lastIndexOf('c')+1);
+			url = url.substring(0, url.indexOf('/'));
+			return (int)Double.parseDouble(url);//For chapter 1.2 for instance
+		}
+		else{
 		String url = currentURL.replace(getBaseURL(), "");
 		url = url.substring(1,url.indexOf('/'));
-		return Integer.parseInt(url);
+		return (int)Double.parseDouble(url);
+		}
 	}
 	
 	private int getChapNum(String url){
@@ -341,7 +352,7 @@ public class MangaHereAPI implements MangaEngine{
 		Document doc;
 		List<String> chaptersList = new ArrayList<String>();
 		try {
-			doc = Jsoup.connect(mangaURL).maxBodySize(0).get();
+			doc = Jsoup.connect(mangaURL).get();
 			Elements chapters = doc.getElementsByClass("color_0077");
 			for(Element item: chapters){
 				//Checks if the link contains the manga name and a number. 

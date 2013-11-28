@@ -1,7 +1,9 @@
 package org.skylion.mangareader.mangaengine;
 
 import java.awt.BorderLayout;
+
 import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
@@ -10,7 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
-import org.skylion.mangareader.util.StretchIconHQ;
+import org.skylion.mangareader.util.StretchIconHQ;;
 
 public class Prefetcher implements MangaEngine{
 
@@ -28,16 +30,21 @@ public class Prefetcher implements MangaEngine{
 		parent = component;
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
+		progressBar = new JProgressBar(0, mangaEngine.getPageList().length);
 		prefetch();
 	}
 
 	public void prefetch (){
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
-		progressBar = new JProgressBar(0, mangaEngine.getPageList().length);
 		progressBar.setValue(0);
+		progressBar.setMaximum(pageURLs.length);
 		progressBar.setStringPainted(true);
 		pages = new StretchIconHQ[pageURLs.length];
+		if(task!=null && !task.isDone()){
+			System.out.println("Interrupting");
+			task.cancel(true);
+		}
 		task = new Task();
 		task.addPropertyChangeListener(new PropertyChangeListener(){
 		    /**
@@ -68,8 +75,7 @@ public class Prefetcher implements MangaEngine{
 			return false;
 		}
 		System.out.println(pageURLs[mangaEngine.getCurrentPageNum()] + "#" + URL);
-		return (pageURLs[mangaEngine.getCurrentPageNum()].equals(URL) || 
-				isCached(URL));
+		return (isCached(URL));
 	}
 
 	/**
@@ -78,9 +84,9 @@ public class Prefetcher implements MangaEngine{
 	 * @return True if in database false otherwise.
 	 */
 	private boolean isCached(String URL){
-		System.out.println("Cached");
 		for(int i = 0; i<pageURLs.length; i++){
 			if(pageURLs[i].equals(URL) && pages[i]!=null){
+				System.out.println("Cached");
 				return true;
 			}
 		}
@@ -133,12 +139,22 @@ public class Prefetcher implements MangaEngine{
 		}
 	}
 	
+	public BufferedImage getImage(String url) throws Exception {
+		return mangaEngine.getImage(url);
+	}
+
 	@Override
 	public String getNextPage() {
-		if(progressBar!=null && mangaEngine.getCurrentPageNum()+1>=progressBar.getValue()){
-			Toolkit.getDefaultToolkit().beep();
+		//Prevents the User from going to a page that hasn't been fetched yet
+		String currentURL = mangaEngine.getCurrentURL();
+		String nextPage = mangaEngine.getNextPage();
+		if(isCached(nextPage) || task.isCancelled() || task.isDone()){
+			return mangaEngine.getNextPage();
 		}
-		return mangaEngine.getNextPage();
+		else{
+			Toolkit.getDefaultToolkit().beep();
+			return currentURL;
+		}
 	}
 
 	@Override
@@ -188,7 +204,7 @@ public class Prefetcher implements MangaEngine{
 	}
 	
 	/**
-	 * ProgressMonitor Swing Worker. Needed to ensure successful reload of ProgressMonitor
+	 * Where the actual prefetching happens
 	 * @author Skylion
 	 */
 	class Task extends SwingWorker<Void, Void> {
@@ -204,13 +220,11 @@ public class Prefetcher implements MangaEngine{
 		@Override
 		public Void doInBackground() {
 			try{
-				//Resets page counter to first page by fetching pages in reverse order
-				for(int i = pageURLs.length-1; i>=0; i--){
-					pages[i] = mangaEngine.loadImg(pageURLs[i]);
-					progressBar.setValue(pageURLs.length-1-i);
-					progressBar.setString("Loading Page:" + (pageURLs.length-1-i) + " of " + (pageURLs.length-1));
-				}
-
+				for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
+					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));
+					progressBar.setValue(i);
+					progressBar.setString("Loading Page:" + i + " of " + (pageURLs.length-1));
+				}	
 			}
 			catch(Exception ex){
 				ex.printStackTrace();
@@ -228,7 +242,10 @@ public class Prefetcher implements MangaEngine{
 			parent.getContentPane().remove(progressBar);
 			parent.revalidate();
 			parent.repaint();
+			
 		}
+		
+		
 	}
 }
 
