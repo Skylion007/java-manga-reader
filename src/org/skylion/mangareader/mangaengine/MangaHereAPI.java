@@ -284,7 +284,7 @@ public class MangaHereAPI implements MangaEngine{
 		Element x = e.get(e.size()/2);//In case it can't find anything, it makes a guess.
 		for(int i = e.size()-1; i>0; i--){
 			Element y = e.get(i);
-			if(y.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(y.text())){
+			if(y.text().toLowerCase().contains(getMangaName(mangaURL).replace("_", " ")) && StringUtil.containsNum(y.text())){
 				x = y;
 				break;
 			}
