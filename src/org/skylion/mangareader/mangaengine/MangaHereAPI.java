@@ -309,18 +309,14 @@ public class MangaHereAPI implements MangaEngine{
 	 * Returns the current chapter number
 	 */
 	public int getCurrentChapNum(){
-		if(currentURL.indexOf('c')!=-1){
-			String url = currentURL.substring(currentURL.lastIndexOf('c')+1);
-			url = url.substring(0, url.indexOf('/'));
-			return (int)Double.parseDouble(url);//For chapter 1.2 for instance
-		}
-		else{
-		String url = currentURL.replace(getBaseURL(), "");
-		url = url.substring(1,url.indexOf('/'));
-		return (int)Double.parseDouble(url);
-		}
+		return getChapNum(currentURL);
 	}
 	
+	/**
+	 * Calculates the chapter
+	 * @param url
+	 * @return
+	 */
 	private int getChapNum(String url){
 		if(!StringUtil.containsNum(url) || url.lastIndexOf('c')==-1){
 			return -1;

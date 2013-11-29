@@ -59,6 +59,7 @@ public class Prefetcher implements MangaEngine{
 			//System.out.println("Interrupting");
 			task.cancel(true);
 		}
+		System.out.print("PREFETCHING" + mangaEngine.getCurrentURL());
 		task = new Task();
 		task.addPropertyChangeListener(new PropertyChangeListener(){
 		    /**
