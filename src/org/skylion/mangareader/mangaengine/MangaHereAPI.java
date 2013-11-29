@@ -12,7 +12,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.skylion.mangareader.util.StretchIconHQ;;
+import org.skylion.mangareader.util.StretchIconHQ;
+import org.skylion.mangareader.util.StringUtil;
 
 /**
  * An unofficial API for MangaHere.com. This is API is not affiliated in any way with
@@ -283,7 +284,7 @@ public class MangaHereAPI implements MangaEngine{
 		Element x = e.get(e.size()/2);//In case it can't find anything, it makes a guess.
 		for(int i = e.size()-1; i>0; i--){
 			Element y = e.get(i);
-			if(y.text().toLowerCase().contains(getMangaName().replace("_", " ")) && containsNum(y.text())){
+			if(y.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(y.text())){
 				x = y;
 				break;
 			}
@@ -321,7 +322,7 @@ public class MangaHereAPI implements MangaEngine{
 	}
 	
 	private int getChapNum(String url){
-		if(!containsNum(url) || url.lastIndexOf('c')==-1){
+		if(!StringUtil.containsNum(url) || url.lastIndexOf('c')==-1){
 			return -1;
 		}
 		url = url.substring(url.lastIndexOf('c'));
@@ -356,7 +357,7 @@ public class MangaHereAPI implements MangaEngine{
 			Elements chapters = doc.getElementsByClass("color_0077");
 			for(Element item: chapters){
 				//Checks if the link contains the manga name and a number. 
-				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && containsNum(item.text())){
+				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(item.text())){
 					chaptersList.add(item.text());
 				}
 			}
@@ -403,6 +404,9 @@ public class MangaHereAPI implements MangaEngine{
 		Document doc;
 		doc = Jsoup.connect(mangaURL).get();
 		Element e =  doc.getElementsByClass("detail_list").first();
+		if(e==null){
+			return false;
+		}
 		return e.text().contains("has been licensed, it is not available in MangaHere.");
 	}
 
@@ -438,7 +442,7 @@ public class MangaHereAPI implements MangaEngine{
 			Element chapterList = doc.getElementsByClass("detail_list").first();
 			Elements chapters = chapterList.getElementsByClass("color_0077");
 			for(Element item: chapters){
-				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && containsNum(item.text())){
+				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(item.text())){
 					String url = item.absUrl("href");
 					if(url!=null && !url.equals("")){
 						chaptersList.add(url);
@@ -475,19 +479,6 @@ public class MangaHereAPI implements MangaEngine{
 		String[] out = new String[pages.size()];
 		pages.toArray(out);
 		return out;
-	}
-
-	/**
-	 * Checks whether a String contains Numbers
-	 * @param text
-	 * @return
-	 */
-	private boolean containsNum(String text){
-		for(char c: text.toCharArray()){
-			if(Character.isDigit(c))
-				return true;
-		}
-		return false;
 	}
 
 	/**

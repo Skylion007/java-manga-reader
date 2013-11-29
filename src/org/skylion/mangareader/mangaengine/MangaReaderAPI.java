@@ -14,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.skylion.mangareader.mangaengine.MangaEngine;
 import org.skylion.mangareader.util.StretchIconHQ;
+import org.skylion.mangareader.util.StringUtil;
 
 /**
  * An unofficial API of MangaReader written by the developers of this program.
@@ -344,7 +345,7 @@ public class MangaReaderAPI implements MangaEngine{
 		else{
 			String number = URL.substring(0,URL.lastIndexOf('/'));
 			number = number.substring(number.lastIndexOf('/')+1);
-			if(!containsNum(number)){//In case it grabs the name instead
+			if(!StringUtil.isNum(number)){//In case it grabs the name instead
 				number = URL.substring(URL.lastIndexOf('/')+1);
 			}
 			return (int)Double.parseDouble(number);
@@ -382,20 +383,6 @@ public class MangaReaderAPI implements MangaEngine{
 			return false;
 		}
 		return true;
-	}
-	
-	/**
-	 * Checks if it contains a number
-	 * @param input The String you want to check
-	 * @return True if it does, false otherwise
-	 */
-	private boolean containsNum(String input){
-		for(char c: input.toCharArray()){
-			if(Character.isDigit(c)){
-				return true;
-			}
-		}
-		return false;
 	}
 	
 	/**

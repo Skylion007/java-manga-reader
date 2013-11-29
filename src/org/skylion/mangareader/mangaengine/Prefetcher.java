@@ -223,7 +223,7 @@ public class Prefetcher implements MangaEngine{
 				for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
 					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));
 					progressBar.setValue(i);
-					progressBar.setString("Loading Page:" + i + " of " + (pageURLs.length-1));
+					progressBar.setString("Loading Page:" + (i+1) + " of " + (pageURLs.length));
 				}	
 			}
 			catch(Exception ex){
