@@ -14,26 +14,40 @@ import javax.swing.SwingWorker;
 
 import org.skylion.mangareader.util.StretchIconHQ;;
 
+/**
+ * A class that wraps a MangaEngine and prefetches from it to improve speed.
+ * The class also adds a progress bar to the JFrame to show how the prefetching is going.
+ * @author Skylion
+ *
+ */
 public class Prefetcher implements MangaEngine{
 
-	private MangaEngine mangaEngine;
-	private StretchIconHQ[] pages;
-	private String[] pageURLs; 
-	private String mangaName;
+	private MangaEngine mangaEngine;//Current MangaEngine
+	private StretchIconHQ[] pages;//Current Images
+	private String[] pageURLs; //URLs corresponding to current images
+	private String mangaName;//CurrentMangaName
 
 	private JProgressBar progressBar;//The Progress Monitor
 	private JFrame parent; //The Parent Component to display the loading bar in
 	private Task task;//The Swing Worker that handles repaint
 	
-	public Prefetcher(JFrame component, MangaEngine mangaEngine){
+	/**
+	 * Constructor
+	 * @param window The JFrame you want to add the progressbar to
+	 * @param mangaEngine The Engine you want to prefetch from
+	 */
+	public Prefetcher(JFrame window, MangaEngine mangaEngine){
 		this.mangaEngine = mangaEngine;
-		parent = component;
+		parent = window;
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
 		progressBar = new JProgressBar(0, mangaEngine.getPageList().length);
 		prefetch();
 	}
 
+	/**
+	 * Performs the prefetching
+	 */
 	public void prefetch (){
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
@@ -41,8 +55,8 @@ public class Prefetcher implements MangaEngine{
 		progressBar.setMaximum(pageURLs.length);
 		progressBar.setStringPainted(true);
 		pages = new StretchIconHQ[pageURLs.length];
-		if(task!=null && !task.isDone()){
-			System.out.println("Interrupting");
+		if(task!=null && !task.isDone()){//Cancels previous task before starting a new one.
+			//System.out.println("Interrupting");
 			task.cancel(true);
 		}
 		task = new Task();
@@ -51,7 +65,7 @@ public class Prefetcher implements MangaEngine{
 		     * Invoked when task's progress property changes.
 		     */
 		    @Override
-			public void propertyChange(PropertyChangeEvent evt) {
+			public void propertyChange(PropertyChangeEvent evt) {//Updates Progressbar
 		        if ("progress" == evt.getPropertyName() ) {
 		            int progress = (Integer) evt.getNewValue();
 		            parent.repaint();
@@ -74,7 +88,7 @@ public class Prefetcher implements MangaEngine{
 			System.out.println(pageURLs.length +"#"+mangaEngine.getCurrentPageNum());
 			return false;
 		}
-		System.out.println(pageURLs[mangaEngine.getCurrentPageNum()] + "#" + URL);
+		//System.out.println(pageURLs[mangaEngine.getCurrentPageNum()] + "#" + URL);
 		return (isCached(URL));
 	}
 
@@ -139,6 +153,7 @@ public class Prefetcher implements MangaEngine{
 		}
 	}
 	
+	@Override
 	public BufferedImage getImage(String url) throws Exception {
 		return mangaEngine.getImage(url);
 	}
@@ -199,7 +214,6 @@ public class Prefetcher implements MangaEngine{
 
 	@Override
 	public int getCurrentChapNum() {
-		// TODO Auto-generated method stub
 		return mangaEngine.getCurrentChapNum();
 	}
 	
@@ -210,8 +224,8 @@ public class Prefetcher implements MangaEngine{
 	class Task extends SwingWorker<Void, Void> {
 		
 		public Task(){
-			parent.getContentPane().add(progressBar, BorderLayout.SOUTH);
-			parent.revalidate();
+			parent.getContentPane().add(progressBar, BorderLayout.SOUTH);//Adds ProgressBar to bottom
+			parent.revalidate();//Refreshes JFRame
 			parent.repaint();
 		}
 		/*
@@ -221,14 +235,14 @@ public class Prefetcher implements MangaEngine{
 		public Void doInBackground() {
 			try{
 				for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
-					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));
-					progressBar.setValue(i);
-					progressBar.setString("Loading Page:" + (i+1) + " of " + (pageURLs.length));
+					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));//Loads image
+					progressBar.setValue(i);//Updates progressbar
+		            progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
 				}	
 			}
 			catch(Exception ex){
 				ex.printStackTrace();
-				done();//Cleans Up 
+				done();//Cleans Up progressbar
 				return null;
 			}
 			return null;		
@@ -239,8 +253,8 @@ public class Prefetcher implements MangaEngine{
 		 */
 		@Override
 		public void done() {
-			parent.getContentPane().remove(progressBar);
-			parent.revalidate();
+			parent.getContentPane().remove(progressBar);//Removes progressbar
+			parent.revalidate();//Refreshes JFrame
 			parent.repaint();
 			
 		}
