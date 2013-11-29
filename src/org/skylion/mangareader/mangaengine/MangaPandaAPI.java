@@ -323,7 +323,7 @@ public class MangaPandaAPI implements MangaEngine{
 			String[][] mangaList = new String[2][names.size()];
 			for(int i = 0; i<names.size(); i++){
 				Element e = names.get(i).select("a").first();
-				mangaList[0][i] = e.text();
+				mangaList[0][i] = e.text().replace("[Completed]","");
 				mangaList[1][i] = e.absUrl("href");
 			}
 			return mangaList;
@@ -439,7 +439,7 @@ public class MangaPandaAPI implements MangaEngine{
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
 		try{
 			List<String> outList = new ArrayList<String>();
-			Document doc = Jsoup.connect(baseURL).get();
+			Document doc = Jsoup.connect(baseURL).maxBodySize(0).get();
 			Element list = doc.getElementById("listing");
 			Elements names = list.select("tr");
 			names = names.select("a");

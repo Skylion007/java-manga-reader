@@ -311,7 +311,7 @@ public class MangaReaderAPI implements MangaEngine{
 			String[][] mangaList = new String[2][names.size()];
 			for(int i = 0; i<names.size(); i++){
 				Element e = names.get(i).select("a").first();
-				mangaList[0][i] = e.text();
+				mangaList[0][i] = e.text().replace("[Completed]","");
 				mangaList[1][i] = e.absUrl("href");
 			}
 			return mangaList;
