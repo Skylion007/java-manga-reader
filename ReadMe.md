@@ -13,7 +13,7 @@ a sleek, intuitive experience.
 * Chapter Select
 * Page Select
 * Autofill
-* Pre-fetching (Coming-Soon) 
+* Pre-fetching
 
 ##Suppported Websites
 * MangaHere
