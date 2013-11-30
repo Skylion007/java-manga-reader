@@ -251,14 +251,11 @@ public class MangaHereAPI implements MangaEngine{
 	public String getMangaURL(String input){
 		String mangaURL = "";
 		input = StringUtil.removeTrailingWhiteSpaces(input);
-		input = input.replace('?', '_');//Needed to handle non-UTF symbols
-		mangaURL = mangaNameToURL(input);
-		mangaURL = MANGA_HERE_URL + mangaURL;
 		try {
-			for(String[] manga: mangaList){
-				String name = manga[0].replace("?", "_");//Needed to handle non-UTF symbols
+			for(int i = 0; i<mangaList[0].length; i++){
+				String name = mangaList[0][i];
 				if(input.equalsIgnoreCase(name)){
-					mangaURL = manga[1];  
+					mangaURL = mangaList[1][i]; 
 					break;
 				}
 			}
@@ -266,8 +263,10 @@ public class MangaHereAPI implements MangaEngine{
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			input = StringUtil.removeTrailingWhiteSpaces(input);
+			mangaURL = mangaNameToURL(input);
+			mangaURL = MANGA_HERE_URL + mangaURL;
 		}
-
 		return mangaURL;
 	}
 
@@ -483,6 +482,7 @@ public class MangaHereAPI implements MangaEngine{
 		name = name.replace('@', 'a');//Special Case
 		name = name.replace("& ", "");//Special Case
 		name = name.replace(' ', '_');
+		name = name.replace(",", "");
 		for(int i = 0; i<name.length(); i++){
 			char x = name.charAt(i);
 			if(!Character.isLetter(x) && x != '_' && !Character.isDigit(x)){
