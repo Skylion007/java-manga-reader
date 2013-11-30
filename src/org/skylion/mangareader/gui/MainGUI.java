@@ -227,6 +227,7 @@ public class MainGUI extends JFrame {
 
 			public void actionPerformed(ActionEvent e) {
 				loadPage(mangaEngine.getNextPage());
+			
 			}
 		};
 

@@ -37,4 +37,27 @@ public class StringUtil {
 		return true;
 	}
 	
+	public static boolean isValidCharacter(char input){
+		char[] validChar ="abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-._~:/?#[]@!$&'()*+,;=;"
+				.toCharArray();
+		for(char c: validChar){
+			if(c == input){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Removes trailing white spaces from a String
+	 * @param input The String you want to modify
+	 * @return
+	 */
+	public static String removeTrailingWhiteSpaces(String input){
+		while(input.charAt(input.length()-1)==' '){//Removes trailing whitespaces
+			input = input.substring(0,input.length()-1);
+		}
+		return input;
+	}
+	
 }

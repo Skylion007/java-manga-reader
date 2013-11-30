@@ -249,14 +249,14 @@ public class MangaHereAPI implements MangaEngine{
 	 * @param input
 	 */
 	public String getMangaURL(String input){
-		String mangaURL;
-		input = mangaNameToURL(input);
-		mangaURL = MANGA_HERE_URL + input;
-		//System.out.println("check");
+		String mangaURL = "";
+		input = StringUtil.removeTrailingWhiteSpaces(input);
+		input = input.replace('?', '_');//Needed to handle non-UTF symbols
+		mangaURL = mangaNameToURL(input);
+		mangaURL = MANGA_HERE_URL + mangaURL;
 		try {
-			//System.out.println(mangaURL);
 			for(String[] manga: mangaList){
-				String name = manga[0];
+				String name = manga[0].replace("?", "_");//Needed to handle non-UTF symbols
 				if(input.equalsIgnoreCase(name)){
 					mangaURL = manga[1];  
 					break;
@@ -267,10 +267,9 @@ public class MangaHereAPI implements MangaEngine{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 		return mangaURL;
 	}
-
-
 
 	/**
 	 * Gets first the chapter from the manga Base URL
@@ -280,16 +279,10 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	private String getFirstChapter(String mangaURL) throws IOException{
 		Document doc = Jsoup.connect(mangaURL).get();
-		Elements e = doc.getElementsByClass("color_0077");
-		Element x = e.get(e.size()/2);//In case it can't find anything, it makes a guess.
-		for(int i = e.size()-1; i>0; i--){
-			Element y = e.get(i);
-			if(y.text().toLowerCase().contains(getMangaName(mangaURL).replace("_", " ")) && StringUtil.containsNum(y.text())){
-				x = y;
-				break;
-			}
-		}
-		return x.absUrl("href");
+		System.out.println(mangaURL);
+		Element e = doc.getElementsByClass("detail_list").last();
+		Element item = e.select("a").last();
+		return item.absUrl("href");
 	}
 
 	/**
@@ -493,8 +486,14 @@ public class MangaHereAPI implements MangaEngine{
 		for(int i = 0; i<name.length(); i++){
 			char x = name.charAt(i);
 			if(!Character.isLetter(x) && x != '_' && !Character.isDigit(x)){
-				name = name.replace(""+x,"");
+				if(i-1>=0 && i+1>=name.length() && name.charAt(i-1) == '_' && name.charAt(i+1) == '_'){
+					name = name.replace(""+x, "");
+				}
+				else{
+					name = name.replace(x,'_');
+				}
 			}
+			
 		}
 		return name;
 	}

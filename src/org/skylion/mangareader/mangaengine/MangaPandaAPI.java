@@ -228,7 +228,7 @@ public class MangaPandaAPI implements MangaEngine{
 	@Override
 	public String getMangaURL(String mangaName) {
 		String mangaURL = "";
-		mangaName = this.removeTrailingWhiteSpaces(mangaName);
+		mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
 		try {
 			for(int i = 0; i<mangaList[0].length; i++){
 				String name = mangaList[0][i];
@@ -245,18 +245,6 @@ public class MangaPandaAPI implements MangaEngine{
 			System.out.println(mangaURL);
 		}
 		return mangaURL;
-	}
-	
-	/**
-	 * Removes trailing white spaces from a String
-	 * @param input The String you want to modify
-	 * @return
-	 */
-	private String removeTrailingWhiteSpaces(String input){
-		while(input.charAt(input.length()-1)==' '){//Removes trailing whitespaces
-			input = input.substring(0,input.length()-1);
-		}
-		return input;
 	}
 	
 	/**

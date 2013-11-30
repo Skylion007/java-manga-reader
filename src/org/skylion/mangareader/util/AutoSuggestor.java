@@ -281,6 +281,10 @@ public class AutoSuggestor {
         Collections.sort(dictionary);//The List works much better when sorted
     }
     
+    public List<String> getDictionary(){
+    	return dictionary;
+    }
+    
     public JWindow getAutoSuggestionPopUpWindow() {
         return autoSuggestionPopUpWindow;
     }
