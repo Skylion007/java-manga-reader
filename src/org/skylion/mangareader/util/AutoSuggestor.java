@@ -241,29 +241,31 @@ public class AutoSuggestor {
     	}
     	
     	autoSuggestionPopUpWindow.getContentPane().add(suggestionsPanel);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth(), 30));
+        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() -
+        		- textField.getInsets().left - textField.getInsets().right, 30));
         autoSuggestionPopUpWindow.setSize(tW, tH);
         autoSuggestionPopUpWindow.setVisible(true);
 
         int windowX = 0;
         int windowY = 0;
 
-        windowX = container.getX() + textField.getX() + 5;
-        if (suggestionsPanel.getHeight() > autoSuggestionPopUpWindow.getMinimumSize().height) {
+
+		if(container.getY()==0){//Special Case: When Screen is Maximized or FullScreen
+			windowY = container.getInsets().top + (textField.getY() + textField.getHeight());
+		} else if (suggestionsPanel.getHeight() > autoSuggestionPopUpWindow.getMinimumSize().height) {
             windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getMinimumSize().height;
         } else {
             windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getHeight();
         }
-
-        
         
         //Sets the location with minor adjustments to make it match the JTextField area without the borders
-        autoSuggestionPopUpWindow.setLocation((windowX+(int)(textField.getInsets().left)), windowY);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() - 
-        		textField.getInsets().left - textField.getInsets().right, 30));
+        autoSuggestionPopUpWindow.setLocation((windowX + textField.getInsets().left), windowY);
+        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() - textField.getInsets().left 
+        		- textField.getInsets().right, 30));
+        autoSuggestionPopUpWindow.setSize(textField.getWidth() - //Minor Adjustment to make it the exact same size
+        		(textField.getInsets().left + textField.getInsets().right)/2, autoSuggestionPopUpWindow.getHeight());
         autoSuggestionPopUpWindow.revalidate();
         autoSuggestionPopUpWindow.repaint();
-
     }
 
     public void setDictionary(List<String> words) {

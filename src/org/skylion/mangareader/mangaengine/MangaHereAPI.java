@@ -301,7 +301,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * Returns the current chapter number
 	 */
 	public int getCurrentChapNum(){
-		return getChapNum(currentURL);
+		return (int)getChapNum(currentURL);
 	}
 	
 	/**
@@ -309,13 +309,13 @@ public class MangaHereAPI implements MangaEngine{
 	 * @param url
 	 * @return
 	 */
-	private int getChapNum(String url){
+	private double getChapNum(String url){
 		if(!StringUtil.containsNum(url) || url.lastIndexOf('c')==-1){
 			return -1;
 		}
 		url = url.substring(url.lastIndexOf('c'));
 		url = url.substring(1, url.indexOf('/'));
-		return (int)Double.parseDouble(url);//Rounds to an int. Needed for v2 uploads and such.
+		return Double.parseDouble(url);//Rounds to an int. Needed for v2 uploads and such.
 	}
 	
 	/**

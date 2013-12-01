@@ -54,7 +54,16 @@ public class StringUtil {
 	 * @return
 	 */
 	public static String removeTrailingWhiteSpaces(String input){
-		while(input.charAt(input.length()-1)==' '){//Removes trailing whitespaces
+		while(input.length()>=1 && input.charAt(input.length()-1)==' '){//Removes trailing whitespaces
+			input = input.substring(0,input.length()-1);
+		}
+		return input;
+	}
+	
+	public static String removeTrailingPunctuation(String input){
+		char c;
+		while(!Character.isAlphabetic(c = input.charAt(input.length()-1)) && !Character.isDigit(c) 
+				&& input.length()>=1){
 			input = input.substring(0,input.length()-1);
 		}
 		return input;

@@ -1,5 +1,8 @@
 package org.skylion.mangareader;
 
+import java.awt.Color;
+import java.awt.Font;
+
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -15,6 +18,9 @@ public class Main {
 		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 		        if ("Nimbus".equals(info.getName())) {
 		            UIManager.setLookAndFeel(info.getClassName());
+		            UIManager.getLookAndFeelDefaults().put("Button.background",new Color(18,55,63));
+		            UIManager.getLookAndFeelDefaults().put("Button.font", new Font("Tahoma", Font.BOLD, 12));
+	                UIManager.getLookAndFeelDefaults().put("Button.textForeground", new Color(122,216,247));
 		            break;
 		        }
 		    }

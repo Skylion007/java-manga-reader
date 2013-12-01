@@ -51,15 +51,14 @@ public class Prefetcher implements MangaEngine{
 	public void prefetch (){
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
+		pages = new StretchIconHQ[pageURLs.length];
 		progressBar.setValue(0);
 		progressBar.setMaximum(pageURLs.length);
 		progressBar.setStringPainted(true);
-		pages = new StretchIconHQ[pageURLs.length];
-		if(task!=null && !task.isDone()){//Cancels previous task before starting a new one.
-			//System.out.println("Interrupting");
+		if(task!=null && !task.isDone() && !task.isCancelled()){//Cancels previous task before starting a new one.
 			task.cancel(true);
 		}
-		System.out.print("PREFETCHING" + mangaEngine.getCurrentURL());
+		//System.out.print("PREFETCHING" + mangaEngine.getCurrentURL());
 		task = new Task();
 		task.addPropertyChangeListener(new PropertyChangeListener(){
 		    /**
@@ -77,22 +76,7 @@ public class Prefetcher implements MangaEngine{
 		});
 		task.execute();
 	}
-
-	/**
-	 * Returns whether or not the image could be and is in the database.
-	 * Makes assumptions to speed up process.
-	 * @param URL The URL you want to check
-	 * @return True if it is in the database, false otherwise.
-	 */
-	private boolean isFetched(String URL){
-		if(mangaEngine.getCurrentPageNum()>=pageURLs.length){
-			System.out.println(pageURLs.length +"#"+mangaEngine.getCurrentPageNum());
-			return false;
-		}
-		//System.out.println(pageURLs[mangaEngine.getCurrentPageNum()] + "#" + URL);
-		return (isCached(URL));
-	}
-
+	
 	/**
 	 * Checks solely whether or not the URL is in the database.
 	 * @param URL The URL you want to check
@@ -105,6 +89,7 @@ public class Prefetcher implements MangaEngine{
 				return true;
 			}
 		}
+		System.out.println("Prefetching because of" + URL);
 		return false;
 	}
 
@@ -114,8 +99,7 @@ public class Prefetcher implements MangaEngine{
 	 * @return
 	 */
 	private StretchIconHQ fetch(String URL){
-		int page = mangaEngine.getCurrentPageNum();
-		if(page>=pageURLs.length){
+		if(!isCached(URL) || isNewChapter()){
 			try {
 				StretchIconHQ icon = loadImg(mangaEngine.getNextPage());
 				prefetch();
@@ -130,6 +114,16 @@ public class Prefetcher implements MangaEngine{
 			return pages[mangaEngine.getCurrentPageNum()];
 		}
 	}
+	
+	public boolean isNewChapter(){
+		String nextPage = mangaEngine.getNextPage();
+		for(String chapter: mangaEngine.getChapterList()){
+			if(chapter.equals(nextPage)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public String getCurrentURL() {
@@ -143,7 +137,7 @@ public class Prefetcher implements MangaEngine{
 
 	@Override
 	public StretchIconHQ loadImg(String url) throws Exception {
-		if(isFetched(url)){
+		if(isCached(url)){
 			mangaEngine.setCurrentURL(url);
 			return fetch(url);
 		}
@@ -164,8 +158,8 @@ public class Prefetcher implements MangaEngine{
 		//Prevents the User from going to a page that hasn't been fetched yet
 		String currentURL = mangaEngine.getCurrentURL();
 		String nextPage = mangaEngine.getNextPage();
-		if(isCached(nextPage) || task.isCancelled() || task.isDone()){
-			return mangaEngine.getNextPage();
+		if(isCached(nextPage) || task == null || task.isCancelled() || task.isDone()){
+			return nextPage;
 		}
 		else{
 			Toolkit.getDefaultToolkit().beep();
@@ -243,7 +237,6 @@ public class Prefetcher implements MangaEngine{
 			}
 			catch(Exception ex){
 				ex.printStackTrace();
-				done();//Cleans Up progressbar
 				return null;
 			}
 			return null;		
@@ -254,11 +247,12 @@ public class Prefetcher implements MangaEngine{
 		 */
 		@Override
 		public void done() {
+			super.done();//Cleans up
 			parent.getContentPane().remove(progressBar);//Removes progressbar
 			parent.revalidate();//Refreshes JFrame
 			parent.repaint();
-			
 		}
+		
 		
 		
 	}
