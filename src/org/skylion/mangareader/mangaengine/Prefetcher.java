@@ -212,6 +212,11 @@ public class Prefetcher implements MangaEngine{
 		return mangaEngine.getCurrentChapNum();
 	}
 	
+	@Override
+	public String[] getChapterNames(){
+		return mangaEngine.getChapterNames();
+	}
+	
 	/**
 	 * Where the actual prefetching happens
 	 * @author Skylion
@@ -228,16 +233,15 @@ public class Prefetcher implements MangaEngine{
 		 */
 		@Override
 		public Void doInBackground() {
-			try{
-				for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
+			for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
+				try{		
 					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));//Loads image
 					progressBar.setValue(i);//Updates progressbar
-		            progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
+					progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
 				}	
-			}
-			catch(Exception ex){
-				ex.printStackTrace();
-				return null;
+				catch(Exception ex){
+					ex.printStackTrace();
+				}
 			}
 			return null;		
 		}

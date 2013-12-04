@@ -69,4 +69,16 @@ public class StringUtil {
 		return input;
 	}
 	
+	public static String[] formatChapterNames(String[] input){
+		for(int i = 0; i<input.length; i++){
+			input[i] = formatChapterNames(input[i]);
+		}
+		return input;
+	}
+	
+	public static String formatChapterNames(String input){
+		input = removeTrailingWhiteSpaces(input);
+		input = input.substring(input.lastIndexOf(' ')+1);
+		return "Chapter: " + input;
+	}
 }

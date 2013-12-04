@@ -142,7 +142,7 @@ public class MainGUI extends JFrame {
 
 		//Sets up the Page
 		toolbar = new JPanel();
-		chapterSel = generateComboBox("Chapter: ", mangaEngine.getChapterList().length);
+		chapterSel = new JComboBox<String>(mangaEngine.getChapterNames());
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				int index = chapterSel.getSelectedIndex();
@@ -403,11 +403,11 @@ public class MainGUI extends JFrame {
 	 * Updates the ComboBoxes for chapters and pages
 	 */
 	private void refreshLists(){
-		String[] chapters = new String[mangaEngine.getChapterList().length];
-		for(int i = 0; i<mangaEngine.getChapterList().length; i++){
-			chapters[i] = ("Chapter: " + (i+1));
-		}
-		chapterSel.setModel(new DefaultComboBoxModel<String>(chapters));//Work around to forcefully refresh
+//		String[] chapters = new String[mangaEngine.getChapterList().length];
+//		for(int i = 0; i<mangaEngine.getChapterList().length; i++){
+//			chapters[i] = ("Chapter: " + (i+1));
+//		}
+		chapterSel.setModel(new DefaultComboBoxModel<String>(mangaEngine.getChapterNames()));//Work around to forcefully refresh
 		String[] pages = new String[mangaEngine.getPageList().length];
 		for(int i = 0; i<mangaEngine.getPageList().length; i++){
 			pages[i] = ("Page: " + (i+1));

@@ -293,7 +293,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	@Override
 	public int getCurrentChapNum() {
-		return getChapNum(currentURL);
+		return (int)getChapNum(currentURL);
 	}
 
 	/**
@@ -328,19 +328,19 @@ public class MangaPandaAPI implements MangaEngine{
 	 * @param URL the URL you want to generate the number of
 	 * @return The calculated number
 	 */
-	private int getChapNum(String URL){
+	private double getChapNum(String URL){
 		if(URL.contains("chapter")){
 			String test = URL.substring(URL.lastIndexOf('-')+1);
 			if(test.indexOf('.')!=-1){
 				test = test.substring(0, test.indexOf('.'));
 			}
-			return (int)Double.parseDouble(test);
+			return Double.parseDouble(test);
 		}
 		if(hasMangaHash(URL)){//There are two types of ways of delineating Manga on the site
 			String chapter = URL.replace(MANGA_PANDA_URL, "");
 			chapter = chapter.substring(0,chapter.indexOf("/"));
 			chapter = chapter.substring(chapter.indexOf('-')+1, chapter.lastIndexOf('-'));
-			return (int)Double.parseDouble(chapter);
+			return Double.parseDouble(chapter);
 		}
 		else{
 			String number = URL.substring(0,URL.lastIndexOf('/'));
@@ -348,7 +348,7 @@ public class MangaPandaAPI implements MangaEngine{
 			if(!StringUtil.isNum(number)){//In case it grabs the name instead
 				number = URL.substring(URL.lastIndexOf('/')+1);
 			}
-			return (int)Double.parseDouble(number);
+			return Double.parseDouble(number);
 		}
 	}
 	
@@ -419,10 +419,6 @@ public class MangaPandaAPI implements MangaEngine{
 	 * Generates a list of all the current chapters in the current Manga
 	 * @return A String[] of all current chapters in the manga.
 	 */
-	/**
-	 * Generates a list of all the current chapters in the current Manga
-	 * @return A String[] of all current chapters in the manga.
-	 */
 	private String[] initializeChapterList() {
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
 		try{
@@ -443,4 +439,25 @@ public class MangaPandaAPI implements MangaEngine{
 			return null;
 		}
 	}
+	
+	public String[] getChapterNames(){
+		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
+		try{
+			Document doc = Jsoup.connect(baseURL).maxBodySize(0).get();
+			Element list = doc.getElementById("listing");
+			Elements names = list.select("tr");
+			names = names.select("a");
+			String[] out = new String[names.size()];
+			for(int i = 0; i<out.length; i++){
+				out[i] = names.get(i).text();
+			}
+			out = StringUtil.formatChapterNames(out);
+			return out;
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+			return null;
+		}
+	}
+	
 }

@@ -29,6 +29,7 @@ public interface MangaEngine {
 	
 	public String[] getChapterList();
 	public String[] getPageList();
+	public String[] getChapterNames();
 	
 	public String getMangaURL(String mangaName);
 	

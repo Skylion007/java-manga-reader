@@ -338,28 +338,22 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	public String[] getChapterNames(){
 		String mangaURL = MANGA_HERE_URL + getMangaName().replace(' ', '_')+'/';
-		Document doc;
-		List<String> chaptersList = new ArrayList<String>();
 		try {
-			doc = Jsoup.connect(mangaURL).get();
-			Elements chapters = doc.getElementsByClass("color_0077");
-			for(Element item: chapters){
-				//Checks if the link contains the manga name and a number. 
-				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(item.text())){
-					chaptersList.add(item.text());
-				}
+			Document doc = Jsoup.connect(mangaURL).get();
+			Element e = doc.getElementsByClass("detail_list").last();
+			Elements items = e.select("li");
+			items = items.select("a");
+			String[] names = new String[items.size()];
+			for(int i = 0; i<names.length; i++){
+				names[names.length-1-i] = items.get(i).text();//Orders Chapter Names correctly
 			}
+			names = StringUtil.formatChapterNames(names);
+			return names;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
-		String[] out = new String[chaptersList.size()];
-		//Reverses the order so that first chapter is first.
-		for(int i=chaptersList.size()-1, x = 0; i>0 && x<out.length; i--, x++){
-			out[x] = chaptersList.get(i);
-		}
-		return out;
 	}
 
 	/**
@@ -446,8 +440,8 @@ public class MangaHereAPI implements MangaEngine{
 			out[out.length-1-i] = chaptersList.get(i);
 		}
 		return out;
-	}
-
+	}	
+	
 	/**
 	 * Fetches a list of URLs.
 	 * @return A String[] consisting of the URLs for the pages.
