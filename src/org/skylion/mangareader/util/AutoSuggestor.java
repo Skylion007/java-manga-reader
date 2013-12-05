@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -372,10 +373,9 @@ class SuggestionLabel extends JLabel {
             @Override
             public void mouseClicked(MouseEvent me) {
                 super.mouseClicked(me);
-
                 replaceWithSuggestedText();
-
                 autoSuggestionsPopUpWindow.setVisible(false);
+                fireTextFieldActionEvents();
             }
         });
 
@@ -419,5 +419,13 @@ class SuggestionLabel extends JLabel {
         String t = text.substring(0, text.lastIndexOf(typedWord));
         String tmp = t + text.substring(text.lastIndexOf(typedWord)).replace(typedWord, suggestedWord);
         textField.setText(tmp + " ");
+    }
+    
+    private void fireTextFieldActionEvents(){
+    	int uniqueId = (int) System.currentTimeMillis();
+        String commandName = "";
+        for(ActionListener tmp: textField.getActionListeners()){
+        	tmp.actionPerformed(new ActionEvent(textField, uniqueId, commandName));
+        }
     }
 }

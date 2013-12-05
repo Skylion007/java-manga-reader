@@ -421,16 +421,15 @@ public class MangaHereAPI implements MangaEngine{
 		List<String> chaptersList = new ArrayList<String>();
 		try {
 			doc = Jsoup.connect(mangaURL).get();
-			Element chapterList = doc.getElementsByClass("detail_list").first();
-			Elements chapters = chapterList.getElementsByClass("color_0077");
-			for(Element item: chapters){
-				if(item.text().toLowerCase().contains(getMangaName().replace("_", " ")) && StringUtil.containsNum(item.text())){
-					String url = item.absUrl("href");
-					if(url!=null && !url.equals("")){
-						chaptersList.add(url);
-					}
-				}
+			Element e = doc.getElementsByClass("detail_list").last();
+			Elements items = e.select("li");
+			items = items.select("a");
+			String[] names = new String[items.size()];
+			for(int i = 0; i<names.length; i++){
+				names[names.length-1-i] = items.get(i).absUrl("href");//Orders Chapter urls correctly
 			}
+			return names;
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

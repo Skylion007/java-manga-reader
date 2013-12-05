@@ -126,7 +126,7 @@ public class MainGUI extends JFrame {
 	    
 
 		//Wraps 
-		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList() , Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);			
+		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList() , Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);
 		//AutoCompleteDecorator.decorate(mangaSelect, mangaEngine.getMangaList(), false);
 
 
@@ -284,7 +284,7 @@ public class MainGUI extends JFrame {
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent e) {
 				KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(e);
-				//System.out.println(keyStroke);
+				System.out.println(keyStroke);
 				if ( actionMap.containsKey(keyStroke) ) {
 					final Action a = actionMap.get(keyStroke);
 					final ActionEvent ae = new ActionEvent(e.getSource(), e.getID(), null );
@@ -333,7 +333,6 @@ public class MainGUI extends JFrame {
 			this.repaint();
 			this.revalidate();
 			fullScreen = true;
-			mangaSelect.setLocation(mangaSelect.getLocation());
 		}
 	}
 	
@@ -403,10 +402,6 @@ public class MainGUI extends JFrame {
 	 * Updates the ComboBoxes for chapters and pages
 	 */
 	private void refreshLists(){
-//		String[] chapters = new String[mangaEngine.getChapterList().length];
-//		for(int i = 0; i<mangaEngine.getChapterList().length; i++){
-//			chapters[i] = ("Chapter: " + (i+1));
-//		}
 		chapterSel.setModel(new DefaultComboBoxModel<String>(mangaEngine.getChapterNames()));//Work around to forcefully refresh
 		String[] pages = new String[mangaEngine.getPageList().length];
 		for(int i = 0; i<mangaEngine.getPageList().length; i++){
