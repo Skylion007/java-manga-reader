@@ -95,8 +95,8 @@ public class MainGUI extends JFrame {
 	private void initGUI(){
 		setTitle("Janga Manga Reader");
 		setBackground(Color.BLACK);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//Exits the program on close
+		
 		pane = getContentPane();
 		pane.setLayout(new BorderLayout());
 		pane.setBackground(Color.BLACK);
