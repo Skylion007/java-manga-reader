@@ -99,7 +99,7 @@ public class Prefetcher implements MangaEngine{
 	 * @return
 	 */
 	private StretchIconHQ fetch(String URL){
-		if(!isCached(URL) || isNewChapter()){
+		if(!isCached(URL)){
 			try {
 				StretchIconHQ icon = loadImg(mangaEngine.getNextPage());
 				prefetch();
@@ -111,20 +111,11 @@ public class Prefetcher implements MangaEngine{
 			}
 		}
 		else {
+			mangaEngine.setCurrentURL(URL);
 			return pages[mangaEngine.getCurrentPageNum()];
 		}
 	}
 	
-	public boolean isNewChapter(){
-		String nextPage = mangaEngine.getNextPage();
-		for(String chapter: mangaEngine.getChapterList()){
-			if(chapter.equals(nextPage)){
-				return true;
-			}
-		}
-		return false;
-	}
-
 	@Override
 	public String getCurrentURL() {
 		return mangaEngine.getCurrentURL();
@@ -155,7 +146,6 @@ public class Prefetcher implements MangaEngine{
 
 	@Override
 	public String getNextPage() {
-		//Prevents the User from going to a page that hasn't been fetched yet
 		String currentURL = mangaEngine.getCurrentURL();
 		String nextPage = mangaEngine.getNextPage();
 		if(isCached(nextPage) || task == null || task.isCancelled() || task.isDone()){
@@ -234,13 +224,18 @@ public class Prefetcher implements MangaEngine{
 		@Override
 		public Void doInBackground() {
 			for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
-				try{		
-					pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));//Loads image
-					progressBar.setValue(i);//Updates progressbar
-					progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
-				}	
-				catch(Exception ex){
-					ex.printStackTrace();
+				int attemptNum = 0;
+				while(attemptNum <=3){//Retries three times to load the image.
+					try{		
+						pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));//Loads image
+						progressBar.setValue(i);//Updates progressbar
+						progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
+						break;
+					}	
+					catch(Exception ex){
+						ex.printStackTrace();
+						attemptNum++;
+					}
 				}
 			}
 			return null;		

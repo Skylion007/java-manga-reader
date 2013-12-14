@@ -76,9 +76,10 @@ public class StringUtil {
 		return input;
 	}
 	
+	
 	public static String formatChapterNames(String input){
 		input = removeTrailingWhiteSpaces(input);
 		input = input.substring(input.lastIndexOf(' ')+1);
-		return "Chapter: " + input;
+		return "Ch: " + input;
 	}
 }
