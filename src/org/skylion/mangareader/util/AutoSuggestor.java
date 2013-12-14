@@ -42,6 +42,7 @@ public class AutoSuggestor {
     private String typedWord;
     private final List<String> dictionary = new ArrayList<>();
     private int tW, tH;
+	private int lastFocusableIndex = 0;
     private DocumentListener documentListener = new DocumentListener() {
         @Override
         public void insertUpdate(DocumentEvent de) {
@@ -129,7 +130,6 @@ public class AutoSuggestor {
 			 * Auto-generated serial long
 			 */
 			private static final long serialVersionUID = 7355352173460888575L;
-			int lastFocusableIndex = 0;
 
             @Override
             public void actionPerformed(ActionEvent ae) {//allows scrolling of labels in pop window (I know very hacky for now :))
@@ -173,6 +173,56 @@ public class AutoSuggestor {
                 }
             }
         });
+        suggestionsPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, true), "Up released");
+        suggestionsPanel.getActionMap().put("Up released", new AbstractAction() {
+            /**
+			 * Auto-generated serial long
+			 */
+			private static final long serialVersionUID = 7355352173460888575L;
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {//allows scrolling of labels in pop window (I know very hacky for now :))
+
+                List<SuggestionLabel> sls = getAddedSuggestionLabels();
+                int max = sls.size();
+
+                if (max > 1) {//more than 1 suggestion
+                    for (int i = max-1; i >= 0; i--) {
+                        SuggestionLabel sl = sls.get(i);
+                        if (sl.isFocused()) {
+                            if (lastFocusableIndex == 0) {
+                                lastFocusableIndex = max - 1;
+                                sl.setFocused(false);
+                                autoSuggestionPopUpWindow.setVisible(false);
+                                setFocusToTextField();
+                                checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
+
+                            } else {
+                                sl.setFocused(false);
+                                lastFocusableIndex = i;
+                            }
+                        } else if (lastFocusableIndex >= i) {
+                            if (i < max) {
+                                sl.setFocused(true);
+                                autoSuggestionPopUpWindow.toFront();
+                                autoSuggestionPopUpWindow.requestFocusInWindow();
+                                suggestionsPanel.requestFocusInWindow();
+                                suggestionsPanel.getComponent(i).requestFocusInWindow();
+                                lastFocusableIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                } else {//only a single suggestion was given
+                    autoSuggestionPopUpWindow.setVisible(false);
+                    setFocusToTextField();
+                    checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
+                    setFocusToTextField();
+                    
+                }
+            }
+        });
+
     }
 
     private void setFocusToTextField() {
@@ -221,7 +271,11 @@ public class AutoSuggestor {
         suggestionsPanel.add(suggestionLabel);
     }
 
-    public String getCurrentlyTypedWord() {//get newest word after last white spaceif any or the first word if no white spaces
+    /**
+     * Gets the String currently used. Can be modified to show suggestions for each word.
+     * @return
+     */
+    public String getCurrentlyTypedWord() {
         String text = textField.getText();
         return text;
     }
@@ -390,6 +444,7 @@ class SuggestionLabel extends JLabel {
             public void actionPerformed(ActionEvent ae) {
                 replaceWithSuggestedText();
                 autoSuggestionsPopUpWindow.setVisible(false);
+                fireTextFieldActionEvents();
             }
         });
     }
@@ -423,8 +478,8 @@ class SuggestionLabel extends JLabel {
     
     private void fireTextFieldActionEvents(){
     	int uniqueId = (int) System.currentTimeMillis();
-        String commandName = "";
-        for(ActionListener tmp: textField.getActionListeners()){
+        String commandName = "Word Replaced";
+        for(ActionListener tmp: textField.getActionListeners()){//Manually fires action events.
         	tmp.actionPerformed(new ActionEvent(textField, uniqueId, commandName));
         }
     }
