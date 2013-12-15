@@ -59,7 +59,6 @@ public class MainGUI extends JFrame {
 	private JButton previous;
 
 	private JPanel toolbar;
-	private JLabel currentNum;
 	private JComboBox<String> chapterSel;
 	private JComboBox<String> pageSel;
 	private JComboBox<String> engineSel;
@@ -142,6 +141,10 @@ public class MainGUI extends JFrame {
 			e1.printStackTrace();
 		}
 		page.setPreferredSize(getEffectiveScreenSize());
+		page.setBackground(Color.BLACK);
+		page.setForeground(Color.WHITE);
+		page.setDoubleBuffered(true);
+		page.setFocusable(true);
 		
 		//Sets up the Page
 		toolbar = new JPanel();
@@ -180,27 +183,43 @@ public class MainGUI extends JFrame {
 		engineSel = new JComboBox<String>(engineOptions);
 		engineSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				int index = engineSel.getSelectedIndex();
-				try {
-					loadMangaEngine(index);
-					refreshLists();
-					autoSelect.setDictionary(mangaEngine.getMangaList());//Resets the list
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
+					int index = engineSel.getSelectedIndex();
+					try {
+						loadMangaEngine(index);
+						refreshLists();
+						autoSelect.setDictionary(mangaEngine.getMangaList());//Resets the list
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		});
 		
-		currentNum = new JLabel("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + mangaEngine.getCurrentPageNum());
 		
+//		Color defaultBack = chapterSel.getBackground();
+//		Color defaultFront = chapterSel.getForeground();
+//		chapterSel.setEditable(true);
+//		pageSel.setEditable(true);
+//		JTextField chapterEditor = ((JTextField)chapterSel.getEditor().getEditorComponent());
+//		chapterEditor.setEditable(false);
+//		chapterEditor.setColumns(3);
+//		//JTextField pageEditor = ((JTextField)pageSel.getEditor().getEditorComponent());
+//		
+//		//pageEditor.setEditable(false);
+//		
+//		//pageEditor.setColumns(3);
+//		//chapterSel.setForeground(fg)
+//		
+		//currentNum = new JLabel("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + mangaEngine.getCurrentPageNum());
 		
 		toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
 		toolbar.setBackground(next.getBackground().brighter());
-		currentNum.setForeground(next.getForeground());
-		currentNum.setFont(next.getFont());
+		//currentNum.setForeground(next.getForeground());
+		//currentNum.setFont(next.getFont());
 		toolbar.add(mangaSelect);
-		toolbar.add(currentNum);
+		//toolbar.add(currentNum);
 		toolbar.add(engineSel);
 		toolbar.add(chapterSel);
 		toolbar.add(pageSel);
@@ -229,6 +248,21 @@ public class MainGUI extends JFrame {
 		pane.add(toolbar, BorderLayout.NORTH);
 		pane.add(pageUI, BorderLayout.CENTER);
 		
+		//Experimental auto-hide functio
+//		pane.addMouseMotionListener(new MouseAdapter() {
+//		    public void mouseMoved (MouseEvent me) {
+//		        boolean was = toolbar.isVisible();
+//		    	if (toolbar.getBounds().contains(me.getPoint())) {//If mouseOver
+//					toolbar.setVisible(true);
+		
+//		        } else {
+//		            toolbar.setVisible(false);
+//		        }
+//		    	if(was != toolbar.isVisible()){
+//		    		revalidate();
+//		    	}
+//		    }
+//		});
 		initKeyboard();
 	}
 			
@@ -428,6 +462,7 @@ public class MainGUI extends JFrame {
 		return new JComboBox<String>(out);
 	}
 	
+	
 	/**
 	 * Updates the ComboBoxes for chapters and pages
 	 */
@@ -441,8 +476,10 @@ public class MainGUI extends JFrame {
 	}
 	
 	private void updateStatus(){
-		currentNum.setText("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + 
-				mangaEngine.getCurrentPageNum());
+		String chapter = "Ch: " + mangaEngine.getCurrentChapNum();
+		String page = "Pg: " + mangaEngine.getCurrentPageNum();
+		chapterSel.getModel().setSelectedItem(chapter);//Changes the text when combobox is uneditable.
+		pageSel.getModel().setSelectedItem(page);
 	}
 
 }

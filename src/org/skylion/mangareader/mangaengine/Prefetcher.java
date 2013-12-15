@@ -99,7 +99,7 @@ public class Prefetcher implements MangaEngine{
 	 * @return
 	 */
 	private StretchIconHQ fetch(String URL){
-		if(!isCached(URL)){
+		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>=pages.length){
 			try {
 				StretchIconHQ icon = loadImg(mangaEngine.getNextPage());
 				prefetch();
@@ -111,7 +111,6 @@ public class Prefetcher implements MangaEngine{
 			}
 		}
 		else {
-			mangaEngine.setCurrentURL(URL);
 			return pages[mangaEngine.getCurrentPageNum()];
 		}
 	}
