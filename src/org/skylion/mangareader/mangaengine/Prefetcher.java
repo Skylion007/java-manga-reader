@@ -101,7 +101,7 @@ public class Prefetcher implements MangaEngine{
 	private StretchIconHQ fetch(String URL){
 		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>=pages.length){
 			try {
-				StretchIconHQ icon = loadImg(mangaEngine.getNextPage());
+				StretchIconHQ icon = loadImg(URL);
 				prefetch();
 				return icon;
 			} catch (Exception e) {
