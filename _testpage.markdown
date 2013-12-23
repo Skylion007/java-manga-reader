@@ -1,5 +1,5 @@
 ---
-title: This is a test page
+title: This will be used as the title-tag of the page head
 ---
 
 THIS IS A TEST OF JEKYLL!
