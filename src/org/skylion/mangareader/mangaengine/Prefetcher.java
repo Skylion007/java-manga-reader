@@ -205,6 +205,12 @@ public class Prefetcher implements MangaEngine{
 	public String[] getChapterNames(){
 		return mangaEngine.getChapterNames();
 	}
+
+	public void close(){
+		if(task!=null && !task.isDone() && !task.isCancelled()){//Cancels previous task before starting a new one.
+			task.cancel(true);
+		}
+	}
 	
 	/**
 	 * Where the actual prefetching happens
@@ -250,9 +256,7 @@ public class Prefetcher implements MangaEngine{
 			parent.revalidate();//Refreshes JFrame
 			parent.repaint();
 		}
-		
-		
-		
+
 	}
 }
 

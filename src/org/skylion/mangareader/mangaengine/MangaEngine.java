@@ -36,4 +36,5 @@ public interface MangaEngine {
 	public int getCurrentPageNum();
 	public int getCurrentChapNum();
 
+	public void close();
 }
