@@ -4,19 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.net.SocketTimeoutException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -34,6 +40,8 @@ import org.skylion.mangareader.mangaengine.MangaPandaAPI;
 import org.skylion.mangareader.mangaengine.MangaReaderAPI;
 import org.skylion.mangareader.mangaengine.Prefetcher;
 import org.skylion.mangareader.util.*;
+
+
 
 
 //TODO Re-compose code to remove unnecessary JFrame extension
@@ -57,18 +65,21 @@ public class MainGUI extends JFrame {
 	 */
 	private JButton next;
 	private JButton previous;
-
+	
 	private JPanel toolbar;
 	private JComboBox<String> chapterSel;
 	private JComboBox<String> pageSel;
 	private JComboBox<String> engineSel;
+	private JButton toggleFullScreen;
+	//private JToggleButton toolbarLock;
+	
 	/**
 	 * User commandline
 	 */
-	private JTextField mangaSelect;
-	private AutoSuggestor autoSelect;
+	private JTextField mangaSelect;//MangaSelect
+	private AutoSuggestor autoSelect;//My Autosuggestion Decorator
 	private JLabel page; //That page currently displayed
-	private boolean fullScreen = false;
+	private boolean fullScreen = false;//Is in Fullscreen?
 	
 	
 	private JPanel pageUI;
@@ -77,27 +88,35 @@ public class MainGUI extends JFrame {
 	 * Used to create and store Global Keystroke
 	 */
 	private HashMap<KeyStroke, Action> actionMap = new HashMap<KeyStroke, Action>();
-
+	
+	/**
+	 * Used to store different Manga Engines
+	 */
+	private HashMap<String, MangaEngine> mangaEngineMap = new HashMap<String, MangaEngine>();
+	
 	/**
 	 * The Engine used to fetch content from the Manga Website. In this case MangaHere
 	 */
 	private MangaEngine mangaEngine;
 
 	public MainGUI(){
+		super();
 		try {
-			mangaEngine = new Prefetcher(this, new MangaHereAPI());
+			mangaEngine = new Prefetcher(this.getContentPane(), new MangaHereAPI());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			Toolkit.getDefaultToolkit().beep();
+			System.exit(ABORT);
 			return;
 		}
 		initGUI();
 	}
 
 	private void initGUI(){
-		setTitle("Janga Manga Reader");
-		setBackground(Color.BLACK);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//Exits the program on close
+		this.setTitle("Janga Manga Reader");
+		this.setBackground(Color.BLACK);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//Exits the program on close
 		
 		pane = getContentPane();
 		pane.setLayout(new BorderLayout());
@@ -125,45 +144,61 @@ public class MainGUI extends JFrame {
 				refreshLists();
 			}
 		});
-	    
+		
+		//Wraps the TextField with my custom autosuggestion box
+		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList(), 
+				Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);
+		
+		//Sets up the page
+		page = new JLabel(){
+			/**
+			 * Auto-generated SerialVersionUID
+			 */
+			private static final long serialVersionUID = 532613206165392749L;
 
-		//Wraps 
-		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList() , Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);
-		//AutoCompleteDecorator.decorate(mangaSelect, mangaEngine.getMangaList(), false);
-
-
-		//Gets the Initial Image
-		try {
-			page = new JLabel(new StretchIconHQ((Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader()
-					.getResource("org/skylion/mangareader/resource/WelcomeScreen.png")))));
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+			protected void paintComponent(Graphics g){
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				super.paintComponent(g2d);
+			}
+		};
 		page.setPreferredSize(getEffectiveScreenSize());
 		page.setBackground(Color.BLACK);
-		page.setForeground(Color.WHITE);
+		page.setForeground(next.getForeground());
+		page.setFont(next.getFont().deriveFont(72f));
 		page.setDoubleBuffered(true);
-		page.setFocusable(true);
-		
-		//Sets up the Page
-		toolbar = new JPanel();
+		//User Welcome Screen!
+		page.setText("<html><center><p> Welcome to Janga!</p> <h1>A Java Manga Reading Application</h1>" +
+				"<p><font size =\"32\">Just type the name of the manga you wish to read in the search bar above."+
+				" Use the dropdown menus to navigate between different manga sources, chapters," +
+				" and pages.<font size =\"32\"></p>" +
+				"<p>Enjoy!</p></center>");
+	
+		////////////////////////////////////////
+		//Constructs components in the toolbar//
+		////////////////////////////////////////
 		chapterSel = new JComboBox<String>(mangaEngine.getChapterNames());
+		chapterSel.setToolTipText("Chapter Navigation");
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				int index = chapterSel.getSelectedIndex();
-				try {
-					loadPage(mangaEngine.loadImg(mangaEngine.getChapterList()[index]));
-					refreshLists();
-					autoSelect.setDictionary(mangaEngine.getMangaList());
-					updateStatus();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
+
+					int index = chapterSel.getSelectedIndex();
+					try {
+						loadPage(mangaEngine.loadImg(mangaEngine.getChapterList()[index]));
+						refreshLists();
+						autoSelect.setDictionary(mangaEngine.getMangaList());
+						updateStatus();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		});		
+		
 		pageSel = generateComboBox("Pg: ", mangaEngine.getPageList().length);
+		pageSel.setToolTipText("Page Navigation");
 		pageSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
@@ -178,15 +213,30 @@ public class MainGUI extends JFrame {
 				}
 			}
 		});
-		//TODO Integrate These Options into a Settings Panel
-		String[] engineOptions = {"MangaHere", "MangaPanda", "MangaReader"};
-		engineSel = new JComboBox<String>(engineOptions);
+		
+		//Initializes mangaEngineSel
+		try{
+			mangaEngineMap.put("MangaReader", new MangaReaderAPI());
+			mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
+			mangaEngineMap.put("MangaHere", new MangaHereAPI());
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+			return;
+		}
+		engineSel = new JComboBox<String>();
+		for(String s: mangaEngineMap.keySet()){
+			engineSel.addItem(s);
+		}
+		engineSel.setSelectedItem("MangaHere");
+		engineSel.setToolTipText("Selects the website to get manga from");
 		engineSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
-					int index = engineSel.getSelectedIndex();
+					String engineName = (String)engineSel.getSelectedItem();
 					try {
-						loadMangaEngine(index);
+						mangaEngine = new Prefetcher(MainGUI.this, mangaEngineMap.get(engineName));
+						loadPage(mangaEngine.loadImg(mangaEngine.getCurrentURL()));
 						refreshLists();
 						autoSelect.setDictionary(mangaEngine.getMangaList());//Resets the list
 					} catch (Exception e) {
@@ -197,56 +247,75 @@ public class MainGUI extends JFrame {
 			}
 		});
 		
+		toggleFullScreen = new JButton("F");
+		toggleFullScreen.setToolTipText("Toggles FullScreen (CTRL-F)");
+		toggleFullScreen.setForeground(Color.WHITE);
+		toggleFullScreen.setBackground(Color.MAGENTA.darker().darker());
+		toggleFullScreen.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				setFullScreen(!isFullScreen());
+			}
+		});
 		
-//		Color defaultBack = chapterSel.getBackground();
-//		Color defaultFront = chapterSel.getForeground();
-//		chapterSel.setEditable(true);
-//		pageSel.setEditable(true);
-//		JTextField chapterEditor = ((JTextField)chapterSel.getEditor().getEditorComponent());
-//		chapterEditor.setEditable(false);
-//		chapterEditor.setColumns(3);
-//		//JTextField pageEditor = ((JTextField)pageSel.getEditor().getEditorComponent());
-//		
-//		//pageEditor.setEditable(false);
-//		
-//		//pageEditor.setColumns(3);
-//		//chapterSel.setForeground(fg)
-//		
-		//currentNum = new JLabel("Chapter "+ mangaEngine.getCurrentChapNum() + "|Page " + mangaEngine.getCurrentPageNum());
+//		toolbarLock = new JToggleButton("T");
+//		toolbarLock.setToolTipText("Locks toolbar");
+//		toolbarLock.setFont(next.getFont());
+//		toolbarLock.setForeground(Color.WHITE);
+//		toolbarLock.setBackground(Color.LIGHT_GRAY);
+//		toggleFullScreen.addActionListener(new java.awt.event.ActionListener() {
+//			public void actionPerformed(java.awt.event.ActionEvent evt) {
+//				
+//			}
+//		});
 		
+		//Instantionates and sets up asthetics for toolbar
+		toolbar = new JPanel(){
+			/**
+			 * Default Generated Serial UID
+			 */
+			private static final long serialVersionUID = -2560322159063958032L;
+
+			@Override
+			protected void paintComponent(Graphics grphcs) {//Adds a gradient to the JPanel
+				super.paintComponent(grphcs);
+				Graphics2D g2d = (Graphics2D) grphcs;
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+						RenderingHints.VALUE_ANTIALIAS_ON);
+
+				GradientPaint gp = new GradientPaint(0, 0, 
+						getBackground().brighter(), 0, getHeight(),
+						getBackground().darker());
+
+				g2d.setPaint(gp);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+			}            
+		};
+		toolbar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		toolbar.setBackground(Color.DARK_GRAY.brighter());
+		
+		//Adds Items to toolbar
 		toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
-		toolbar.setBackground(next.getBackground().brighter());
-		//currentNum.setForeground(next.getForeground());
-		//currentNum.setFont(next.getFont());
 		toolbar.add(mangaSelect);
-		//toolbar.add(currentNum);
 		toolbar.add(engineSel);
 		toolbar.add(chapterSel);
 		toolbar.add(pageSel);
-
-		//Makes the buttons the same size
-		next.setPreferredSize(previous.getPreferredSize());
+		toolbar.add(toggleFullScreen);
+		//End of Toolbar setup
 		
-		//Experimental UI Color Scheme
-//		Color uiForeground = Color.WHITE;
-//		Color uiBackground = Color.DARK_GRAY;
-//		next.setBackground(uiBackground);
-//		previous.setBackground(uiBackground);
-//		next.setForeground(uiForeground);
-//		previous.setForeground(uiForeground);
-//		toolbar.setBackground(uiBackground);
-//		toolbar.setForeground(uiForeground);
-//		mangaSelect.setBorder(BorderFactory.createLineBorder(uiBackground,3));
+		next.setPreferredSize(previous.getPreferredSize());////Makes the buttons the same size	
 		
 		//Sets up the User Interface
-		pageUI = new JPanel(new BorderLayout());
+		
+		pageUI = new JPanel(new BorderLayout(0,0));
 		pageUI.setBackground(Color.BLACK);
 		pageUI.add(next, BorderLayout.EAST);
 		pageUI.add(previous, BorderLayout.WEST);
 		pageUI.add(page, BorderLayout.CENTER);
-		
+				
 		pane.add(toolbar, BorderLayout.NORTH);
 		pane.add(pageUI, BorderLayout.CENTER);
+		
+		//toolbar.setBackground(toolbar.getParent().getBackground());
 		
 		//Experimental auto-hide functio
 //		pane.addMouseMotionListener(new MouseAdapter() {
@@ -275,7 +344,6 @@ public class MainGUI extends JFrame {
 
 			public void actionPerformed(ActionEvent e) {
 				loadPage(mangaEngine.getNextPage());
-			
 			}
 		};
 
@@ -356,6 +424,7 @@ public class MainGUI extends JFrame {
 				return false;
 			}
 		});
+		
 	}
 
 	
@@ -367,9 +436,12 @@ public class MainGUI extends JFrame {
 		GraphicsDevice dev = env.getDefaultScreenDevice();//Gets the main screen
 		if(!fullScreen){//Checks if a full screen application isn't open
 			this.dispose();//Restarts the JFrame
+			this.setVisible(false);
 			this.setResizable(true);//Re-enables resize-ability.
 			this.setUndecorated(false);//Adds title bar back
 			this.setVisible(true);//Shows restarted JFrame
+			this.removeMouseListener(macWorkAround);
+			this.pack();
 			this.setExtendedState(this.getExtendedState()|JFrame.MAXIMIZED_BOTH);//Returns to maximized state
 			this.fullScreen = false;
 		}
@@ -382,15 +454,28 @@ public class MainGUI extends JFrame {
 			this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 			try{
 				dev.setFullScreenWindow(this);//Makes it full screen
+				if(System.getProperty("os.name").indexOf("Mac OS X") >= 0){
+					this.setVisible(false);
+					this.setVisible(true);
+					this.addMouseListener(macWorkAround);
+				}
+				this.repaint();
+				this.revalidate();
 			}
 			catch(Exception e){
 				dev.setFullScreenWindow(null);//Fall back behavior
 			}
-			this.repaint();
-			this.revalidate();
+			this.requestFocus();
 			this.fullScreen = true;
 		}
 	}
+	
+	private MouseAdapter macWorkAround = new MouseAdapter(){
+		public void mouseClicked(MouseEvent e){
+			MainGUI.this.setVisible(false);
+			MainGUI.this.setVisible(true);
+		}
+	};
 	
 	public boolean isFullScreen(){
 		return fullScreen;
@@ -402,20 +487,26 @@ public class MainGUI extends JFrame {
 	 */
 	private void loadPage(String URL){
 		try {
+			if(mangaEngine.getCurrentURL().equals(URL)){
+				return;//No need to waste time reloading a page.
+			}
 			loadPage(mangaEngine.loadImg(URL));
+			page.setText(null);
 			updateStatus();
 		} catch (Exception e) {
-			if(e instanceof SocketTimeoutException){
-				loadPage(URL);//Tail call
-			}
-			else{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				page.setIcon(new StretchIconHQ((Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader()
-						.getResource("org/skylion/mangareader/resource/LicenseError.png")))));
-				Toolkit.getDefaultToolkit().beep();
-				return;
-			}
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			page.setIcon(null);
+			page.setText("<html><p><center>An error has occured :(</p>" +
+					"<h1>Sorry, the currently requested title or page number could not be found. " +
+					"Please try a different page, chapter, or manga source. " +
+					"If you encountered this error while searching for a manga title, " +
+					"the manga you currently have requested is most likely licensed; " +
+					"hence, not available in your country and/or region." +
+					" We apologize for this inconvenience.</h1> " +
+					"<h1>Thank you for your cooperation!</h1></center></html>");
+			Toolkit.getDefaultToolkit().beep();
+			return;
 		}
 	}
 
@@ -432,20 +523,6 @@ public class MainGUI extends JFrame {
 		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
 		int taskBarSize = scnMax.bottom;
 		return new Dimension(screenSize.width, screenSize.height-taskBarSize);
-	}
-	
-	private void loadMangaEngine(int index) throws Exception{
-		if(index==0){
-			mangaEngine = new MangaHereAPI();
-		}
-		else if(index == 1){
-			mangaEngine = new MangaPandaAPI();
-		}
-		else if(index == 2){
-			mangaEngine = new MangaReaderAPI();
-		}
-		loadPage(mangaEngine.getCurrentURL());
-		mangaEngine = new Prefetcher(this, mangaEngine);
 	}
 
 	/**
@@ -467,7 +544,8 @@ public class MainGUI extends JFrame {
 	 * Updates the ComboBoxes for chapters and pages
 	 */
 	private void refreshLists(){
-		chapterSel.setModel(new DefaultComboBoxModel<String>(mangaEngine.getChapterNames()));//Work around to forcefully refresh
+		//Work around to forcefully refresh
+		chapterSel.setModel(new DefaultComboBoxModel<String>(mangaEngine.getChapterNames()));
 		String[] pages = new String[mangaEngine.getPageList().length];
 		for(int i = 0; i<mangaEngine.getPageList().length; i++){
 			pages[i] = ("Pg: " + (i+1));

@@ -1,14 +1,13 @@
 package org.skylion.mangareader.mangaengine;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
-import javax.swing.JFrame;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
@@ -28,7 +27,7 @@ public class Prefetcher implements MangaEngine{
 	private String mangaName;//CurrentMangaName
 
 	private JProgressBar progressBar;//The Progress Monitor
-	private JFrame parent; //The Parent Component to display the loading bar in
+	private Container parent; //The Parent Component to display the loading bar in
 	private Task task;//The Swing Worker that handles repaint
 	
 	/**
@@ -36,7 +35,7 @@ public class Prefetcher implements MangaEngine{
 	 * @param window The JFrame you want to add the progressbar to
 	 * @param mangaEngine The Engine you want to prefetch from
 	 */
-	public Prefetcher(JFrame window, MangaEngine mangaEngine){
+	public Prefetcher(Container window, MangaEngine mangaEngine){
 		this.mangaEngine = mangaEngine;
 		parent = window;
 		mangaName = mangaEngine.getMangaName();
@@ -48,7 +47,7 @@ public class Prefetcher implements MangaEngine{
 	/**
 	 * Performs the prefetching
 	 */
-	public void prefetch (){
+	public void prefetch(){
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
 		pages = new StretchIconHQ[pageURLs.length];
@@ -58,7 +57,6 @@ public class Prefetcher implements MangaEngine{
 		if(task!=null && !task.isDone() && !task.isCancelled()){//Cancels previous task before starting a new one.
 			task.cancel(true);
 		}
-		//System.out.print("PREFETCHING" + mangaEngine.getCurrentURL());
 		task = new Task();
 		task.addPropertyChangeListener(new PropertyChangeListener(){
 		    /**
@@ -99,19 +97,22 @@ public class Prefetcher implements MangaEngine{
 	 * @return
 	 */
 	private StretchIconHQ fetch(String URL){
-		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>=pages.length){
+		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>pages.length){
 			try {
-				StretchIconHQ icon = loadImg(URL);
+				StretchIconHQ icon = mangaEngine.loadImg(URL);
 				prefetch();
+				if(icon==null){//Sometimes the chapter ends or starts on a blank page.
+					icon = mangaEngine.loadImg(mangaEngine.getNextPage());
+				}
 				return icon;
-			} catch (Exception e) {
+			} catch (Exception e) {			
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
 			}
 		}
 		else {
-			return pages[mangaEngine.getCurrentPageNum()];
+			return pages[mangaEngine.getCurrentPageNum()-1];
 		}
 	}
 	
@@ -151,7 +152,6 @@ public class Prefetcher implements MangaEngine{
 			return nextPage;
 		}
 		else{
-			Toolkit.getDefaultToolkit().beep();
 			return currentURL;
 		}
 	}
@@ -213,7 +213,7 @@ public class Prefetcher implements MangaEngine{
 	class Task extends SwingWorker<Void, Void> {
 		
 		public Task(){
-			parent.getContentPane().add(progressBar, BorderLayout.SOUTH);//Adds ProgressBar to bottom
+			parent.add(progressBar, BorderLayout.SOUTH);//Adds ProgressBar to bottom
 			parent.revalidate();//Refreshes JFRame
 			parent.repaint();
 		}
@@ -246,7 +246,7 @@ public class Prefetcher implements MangaEngine{
 		@Override
 		public void done() {
 			super.done();//Cleans up
-			parent.getContentPane().remove(progressBar);//Removes progressbar
+			parent.remove(progressBar);//Removes progressbar
 			parent.revalidate();//Refreshes JFrame
 			parent.repaint();
 		}

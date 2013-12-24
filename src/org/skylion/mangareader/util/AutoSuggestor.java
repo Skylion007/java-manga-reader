@@ -291,7 +291,8 @@ public class AutoSuggestor {
     private void showPopUpWindow() {
         
     	//Special case for MAC OS where it autoselects if the window spawns the first letter.
-    	if(textField.getText().length()==1 && System.getProperty("os.name").contains("os")){
+    	if(textField.getText().length()==1 && (System.getProperty("os.name").contains("os")
+    			|| System.getProperty("os.name").contains("OS"))){
     		return;
     	}
     	

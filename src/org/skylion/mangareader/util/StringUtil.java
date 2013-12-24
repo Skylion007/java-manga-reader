@@ -3,9 +3,8 @@ package org.skylion.mangareader.util;
 /**
  * Utility class that houses commonly used methods for String parsing
  * @author Skylion
- *
  */
-public class StringUtil {
+public final class StringUtil {
 
 	private StringUtil(){};//Prevents instantiation
 	
@@ -60,15 +59,6 @@ public class StringUtil {
 		return input;
 	}
 	
-	public static String removeTrailingPunctuation(String input){
-		char c;
-		while(!Character.isAlphabetic(c = input.charAt(input.length()-1)) && !Character.isDigit(c) 
-				&& input.length()>=1){
-			input = input.substring(0,input.length()-1);
-		}
-		return input;
-	}
-	
 	public static String[] formatChapterNames(String[] input){
 		for(int i = 0; i<input.length; i++){
 			input[i] = formatChapterNames(input[i]);
@@ -81,5 +71,21 @@ public class StringUtil {
 		input = removeTrailingWhiteSpaces(input);
 		input = input.substring(input.lastIndexOf(' ')+1);
 		return "Ch: " + input;
+	}
+	
+	public static String titleCase(String realName) {
+	    String space = " ";
+	    String[] names = realName.split(space);
+	    StringBuilder b = new StringBuilder();
+	    for (String name : names) {
+	        if (name == null || name.isEmpty()) {
+	            b.append(space);
+	            continue;
+	        }
+	        b.append(name.substring(0, 1).toUpperCase())
+	                .append(name.substring(1).toLowerCase())
+	                .append(space);
+	    }
+	    return b.toString();
 	}
 }

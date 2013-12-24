@@ -10,25 +10,27 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import org.skylion.mangareader.gui.MainGUI;
 
 
+
 public class Main {
 	public static void main(String[] args) {
 		try{
+			Color neptune = new Color(18,55,63);
 			//Loads the Nimbus look and feel
 			//Retrieval method is convulted, but stable.
 		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 		        if ("Nimbus".equals(info.getName())) {
 		            UIManager.setLookAndFeel(info.getClassName());
-		            UIManager.getLookAndFeelDefaults().put("Button.background",new Color(18,55,63));
+		            UIManager.getLookAndFeelDefaults().put("Button.background", neptune);
 		            UIManager.getLookAndFeelDefaults().put("Button.font", new Font("Tahoma", Font.BOLD, 12));
 	                UIManager.getLookAndFeelDefaults().put("Button.textForeground", new Color(122,216,247));
-		            break;
+	                break;
 		        }
 		    }
 		}catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		 MainGUI gui = new MainGUI();
-         gui.setVisible(true);
+		 gui.setVisible(true);
          gui.pack();//Sizes the Frame
          gui.setExtendedState(gui.getExtendedState()|JFrame.MAXIMIZED_BOTH );//Makes it full screen
 	}
