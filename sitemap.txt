@@ -4,9 +4,7 @@ http://skylion007.github.io/java-manga-reader/atom.xml
 http://skylion007.github.io/java-manga-reader/categories.html
 http://skylion007.github.io/java-manga-reader/downloadarchive.html
 http://skylion007.github.io/java-manga-reader/index.html
-http://skylion007.github.io/java-manga-reader/pages.html
 http://skylion007.github.io/java-manga-reader/rss.xml
 http://skylion007.github.io/java-manga-reader/sitemap.txt
-http://skylion007.github.io/java-manga-reader/tags.html
 
 http://skylion007.github.io/java-manga-reader/lessons/2011/12/29/jekyll-introduction
