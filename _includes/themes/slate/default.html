@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="chrome=1" />
+	<meta name="description" content="{{ page.title }} | {{ site.title }}" />
+	<title>{{ page.title }} | {{ site.title }}</title>
+	<meta name="author" content="{{ site.author.name }}">
+	<link href='{{ ASSET_PATH }}/css/stylesheet.css' rel="stylesheet" media="all">
+	<link href='{{ ASSET_PATH }}/css/pygment_trac.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/{{ site.author.feedbaname }}" rel="alternate" title="{{ page.title }}" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header_wrap" class="outer">
+    <header class="inner">
+      <a id="forkme_banner" href="https://github.com/Skylion007/java-manga-reader">View on GitHub</a>
+
+      <h1 id="project_title"><a href="/">{{ site.title }}</a></h1>
+      <!-- <h2 id="project_tagline"></h2> -->
+
+		<nav class="nav-global">
+			<ul>
+				<li class="archive"><a href="/archive.html">Archive</a></li>
+				<li class="page"><a href="/pages.html">Pages</a></li>
+				<li class="category"><a href="/categories.html">Categories</a></li>
+				<li class="tag"><a href="/tags.html">tags</a></li>
+			</ul>
+		</nav>
+    </header>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main_content_wrap" class="outer">
+	<section id="main_content" class="inner">
+		{{ content }}
+	</section>
+</div>
+
+<!-- FOOTER  -->
+<div id="footer_wrap" class="outer">
+	<footer class="inner">
+		<p>Published with <a href="http://pages.github.com">GitHub Pages</a> and <a href="http://jekyllbootstrap.com/">Jekyll</a></p>
+	</footer>
+</div>
+
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="{{ page.url }}" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+
+	{% include JB/analytics %}
+
+	<script type="text/javascript" src="http://wcs.naver.net/wcslog.js"></script>
+	<script type="text/javascript">
+		if(!wcs_add) var wcs_add = {};
+		wcs_add["wa"] = "a7768d103fade8";
+		wcs_do();
+	</script>
+</body>
+</html>
