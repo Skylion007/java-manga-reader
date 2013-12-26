@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
  
  <title>Janga</title>
- <link href="http://username.github.io/" rel="self"/>
- <link href="http://username.github.io"/>
- <updated>2013-12-25T17:19:40-05:00</updated>
- <id>http://username.github.io</id>
+ <link href="http://skylion007.github.io/java-manga-reader/" rel="self"/>
+ <link href="http://skylion007.github.io/java-manga-reader"/>
+ <updated>2013-12-26T14:27:30-05:00</updated>
+ <id>http://skylion007.github.io/java-manga-reader</id>
  <author>
    <name>Aaron Gokaslan</name>
    <email>Skylion.aaron@gmail.com</email>
@@ -14,9 +14,9 @@
  
  <entry>
    <title>Jekyll Introduction</title>
-   <link href="http://username.github.io/lessons/2011/12/29/jekyll-introduction"/>
+   <link href="http://skylion007.github.io/java-manga-reader/lessons/2011/12/29/jekyll-introduction"/>
    <updated>2011-12-29T00:00:00-05:00</updated>
-   <id>http://username.github.io/lessons/2011/12/29/jekyll-introduction</id>
+   <id>http://skylion007.github.io/java-manga-reader/lessons/2011/12/29/jekyll-introduction</id>
    <content type="html">&lt;p&gt;This Jekyll introduction will outline specifically what Jekyll is and why you would want to use it. Directly following the intro we’ll learn exactly &lt;em&gt;how&lt;/em&gt; Jekyll does what it does.&lt;/p&gt;
 
 &lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;

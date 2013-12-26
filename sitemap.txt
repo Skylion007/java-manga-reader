@@ -1,12 +1,12 @@
 
-http://username.github.io/archive.html
-http://username.github.io/atom.xml
-http://username.github.io/categories.html
-http://username.github.io/downloadarchive.html
-http://username.github.io/index.html
-http://username.github.io/pages.html
-http://username.github.io/rss.xml
-http://username.github.io/sitemap.txt
-http://username.github.io/tags.html
+http://skylion007.github.io/java-manga-reader/archive.html
+http://skylion007.github.io/java-manga-reader/atom.xml
+http://skylion007.github.io/java-manga-reader/categories.html
+http://skylion007.github.io/java-manga-reader/downloadarchive.html
+http://skylion007.github.io/java-manga-reader/index.html
+http://skylion007.github.io/java-manga-reader/pages.html
+http://skylion007.github.io/java-manga-reader/rss.xml
+http://skylion007.github.io/java-manga-reader/sitemap.txt
+http://skylion007.github.io/java-manga-reader/tags.html
 
-http://username.github.io/lessons/2011/12/29/jekyll-introduction
+http://skylion007.github.io/java-manga-reader/lessons/2011/12/29/jekyll-introduction
