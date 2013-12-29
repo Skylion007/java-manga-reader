@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jnlp
-        codebase="file:/C:/Users/Skylion/Desktop/Java Web Start/skylion007.github.io/java-manga-reader/janga/" href="file:/C:/Users/Skylion/Desktop/Java Web Start/skylion007.github.io/java-manga-reader/janga/_local_janga.jnlp">
+        codebase="http://skylion007.github.io/java-manga-reader/janga/" href="http://skylion007.github.io/java-manga-reader/janga/_local_janga.jnlp">
         <information>
                 <title>java-manga-reader-git</title>
                 <vendor>Skylion</vendor>
