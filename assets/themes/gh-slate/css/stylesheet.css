@@ -281,7 +281,7 @@ Full-Width Styles
   z-index: 10;
   padding: 10px 50px 10px 10px;
   color: #fff;
-  background: url('../img/blacktocat.png') #0090ff no-repeat 95% 50%;
+  background: url('..java-manga-reader/assets/themes/gh-slate/img/blacktocat.png') #0090ff no-repeat 95% 50%;
   font-weight: 700;
   box-shadow: 0 0 10px rgba(0,0,0,.5);
   border-bottom-left-radius: 2px;
@@ -324,7 +324,7 @@ Full-Width Styles
   bottom: -40px;
   right: 0;
   height: 70px;
-  background: url('../img/icon_download.png') no-repeat 0% 90%;
+  background: url('...java-manga-reader/assets/themes/gh-slate/img/icon_download.png') no-repeat 0% 90%;
 }
 
 .zip_download_link {
