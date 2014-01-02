@@ -390,6 +390,14 @@ public class AutoSuggestor {
     	}
     	return suggestionAdded;
     }
+    
+    public boolean isPopUpVisible(){
+    	return this.autoSuggestionPopUpWindow.isVisible();
+    }
+    
+    public void showPopUp(boolean show){
+    	this.autoSuggestionPopUpWindow.setVisible(show);
+    }
 }
 
 class SuggestionLabel extends JLabel {

@@ -181,8 +181,8 @@ public class MainGUI extends JFrame {
 		chapterSel.setToolTipText("Chapter Navigation");
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
-
+				if (evt.getModifiers() != 0 && evt.getSource() instanceof JComboBox
+						 && ((JComboBox<?>)evt.getSource()).isPopupVisible()){
 					int index = chapterSel.getSelectedIndex();
 					try {
 						loadPage(mangaEngine.loadImg(mangaEngine.getChapterList()[index]));
@@ -201,7 +201,9 @@ public class MainGUI extends JFrame {
 		pageSel.setToolTipText("Page Navigation");
 		pageSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
+				//Checks if it wasn't programmatically fired.
+				if (evt.getModifiers() != 0 && evt.getSource() instanceof JComboBox
+						 && ((JComboBox<?>)evt.getSource()).isPopupVisible()){
 					int index = pageSel.getSelectedIndex();
 					try {
 						loadPage(mangaEngine.loadImg(mangaEngine.getPageList()[index]));
@@ -229,12 +231,13 @@ public class MainGUI extends JFrame {
 			engineSel.addItem(s);
 		}
 		engineSel.setSelectedItem("MangaHere");
-		engineSel.setToolTipText("Selects the website to get manga from");
+		engineSel.setToolTipText("Manga Source Selection");
 		engineSel.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
 					String engineName = (String)engineSel.getSelectedItem();
 					try {
+						mangaEngine.close();
 						mangaEngine = new Prefetcher(MainGUI.this, mangaEngineMap.get(engineName));
 						loadPage(mangaEngine.loadImg(mangaEngine.getCurrentURL()));
 						refreshLists();
@@ -292,6 +295,7 @@ public class MainGUI extends JFrame {
 		};
 		toolbar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		toolbar.setBackground(Color.DARK_GRAY.brighter());
+		//toolbar.setBackground(next.getBackground().brighter());
 		
 		//Adds Items to toolbar
 		toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
@@ -343,7 +347,7 @@ public class MainGUI extends JFrame {
 			private static final long serialVersionUID = -3381019543157339629L;
 
 			public void actionPerformed(ActionEvent e) {
-				loadPage(mangaEngine.getNextPage());
+				next.doClick();
 			}
 		};
 
@@ -354,7 +358,7 @@ public class MainGUI extends JFrame {
 			private static final long serialVersionUID = 1148536792558547221L;
 
 			public void actionPerformed(ActionEvent e) {
-				loadPage(mangaEngine.getPreviousPage());
+				previous.doClick();
 			}
 		};
 		
@@ -556,7 +560,7 @@ public class MainGUI extends JFrame {
 	private void updateStatus(){
 		String chapter = "Ch: " + mangaEngine.getCurrentChapNum();
 		String page = "Pg: " + mangaEngine.getCurrentPageNum();
-		chapterSel.getModel().setSelectedItem(chapter);//Changes the text when combobox is uneditable.
+		chapterSel.getModel().setSelectedItem(chapter);//Work around to forcefully change combobox
 		pageSel.getModel().setSelectedItem(page);
 	}
 

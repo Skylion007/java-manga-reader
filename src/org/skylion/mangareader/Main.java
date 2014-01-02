@@ -2,6 +2,7 @@ package org.skylion.mangareader;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.net.URL;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -14,6 +15,7 @@ import org.skylion.mangareader.gui.MainGUI;
 public class Main {
 	public static void main(String[] args) {
 		try{
+			new URL("jar:file://dummy.jar!/").openConnection().setDefaultUseCaches(false);//Disable caching
 			Color neptune = new Color(18,55,63);
 			//Loads the Nimbus look and feel
 			//Retrieval method is convulted, but stable.

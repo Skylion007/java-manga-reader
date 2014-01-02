@@ -31,14 +31,19 @@ public class MangaPandaAPI implements MangaEngine{
 	 * Base-URL
 	 */
 	private final static String MANGA_PANDA_URL = "http://www.mangapanda.com/";
-	private String[][] mangaList; //List of Manga
+	private final String[][] mangaList; //List of Manga
 
 	/**
 	 * URLs
 	 */
 	private String[] pageURLs;
 	private String[] chapterURLs;
-
+	
+	/**
+	 * Names
+	 */
+	private String[] chapterNames;
+	
 	/**
 	 * Constructor
 	 */
@@ -100,7 +105,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 * @throws IOException If URL is not valid or unable to complete request
 	 */
 	public BufferedImage getImage(String URL) throws IOException{
-		Document doc = Jsoup.connect(URL).get();
+		Document doc = Jsoup.connect(URL).timeout(5*1000).get();
 		Element e = doc.getElementById("img");
 		String imgUrl = e.absUrl("src");
 		return ImageIO.read(new URL(imgUrl));
@@ -162,22 +167,11 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	@Override
 	public List<String> getMangaList() {
-		try {
-			Document doc = Jsoup.connect("http://www.mangapanda.com/alphabetical").maxBodySize(0).get();
-			Elements bigList = doc.getElementsByClass("series_alpha");
-			List<String> out = new ArrayList<String>();
-			for(Element miniList: bigList){
-				Elements names = miniList.select("li");
-				for(Element name: names){
-					out.add(name.text().replace("[Completed]",""));//Removes completed stuff
-				}
-			}
-			return out;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+		List<String> names = new ArrayList<String>(mangaList[0].length);
+		for(int i = 0; i<mangaList[0].length; i++){
+			names.add(mangaList[0][i]);
 		}
+		return names;
 	}
 	
 	/**
@@ -302,7 +296,8 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	private String[][] initializeMangaList(){		
 		try{
-			Document doc = Jsoup.connect("http://www.mangapanda.com/alphabetical").maxBodySize(0).get();
+			Document doc = Jsoup.connect("http://www.mangapanda.com/alphabetical").timeout(10*1000)
+					.maxBodySize(0).get();
 			Elements bigList = doc.getElementsByClass("series_alpha");
 			Elements names = new Elements();
 			for(Element miniList: bigList){
@@ -392,6 +387,7 @@ public class MangaPandaAPI implements MangaEngine{
 	private void refreshLists(){
 		this.chapterURLs = initializeChapterList();
 		this.pageURLs = initializePageList();
+		this.chapterNames = initializeChapterNames();
 	}
 	
 	public void close(){
@@ -404,7 +400,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	private String[] initializePageList() {
 		try {
-			Document doc = Jsoup.connect(currentURL).get();
+			Document doc = Jsoup.connect(currentURL).timeout(10*1000).get();
 			Elements items = doc.getElementById("pageMenu").children();
 			String[] out = new String[items.size()];
 			for(int i = 0; i<items.size(); i++){
@@ -427,7 +423,7 @@ public class MangaPandaAPI implements MangaEngine{
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
 		try{
 			List<String> outList = new ArrayList<String>();
-			Document doc = Jsoup.connect(baseURL).maxBodySize(0).get();
+			Document doc = Jsoup.connect(baseURL).timeout(10*1000).maxBodySize(0).get();
 			Element list = doc.getElementById("listing");
 			Elements names = list.select("tr");
 			names = names.select("a");
@@ -445,9 +441,13 @@ public class MangaPandaAPI implements MangaEngine{
 	}
 	
 	public String[] getChapterNames(){
+		return chapterNames;
+	}
+	
+	public String[] initializeChapterNames() {
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
 		try{
-			Document doc = Jsoup.connect(baseURL).maxBodySize(0).get();
+			Document doc = Jsoup.connect(baseURL).timeout(10*1000).maxBodySize(0).get();
 			Element list = doc.getElementById("listing");
 			Elements names = list.select("tr");
 			names = names.select("a");
@@ -462,6 +462,7 @@ public class MangaPandaAPI implements MangaEngine{
 			ex.printStackTrace();
 			return null;
 		}
+
 	}
 	
 }

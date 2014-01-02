@@ -83,16 +83,29 @@ public class Prefetcher implements MangaEngine{
 	private boolean isCached(String URL){
 		for(int i = 0; i<pageURLs.length; i++){
 			if(pageURLs[i].equals(URL) && pages[i]!=null){
-				System.out.println("Cached");
 				return true;
 			}
 		}
-		System.out.println("Prefetching because of" + URL);
+		return false;
+	}
+	
+	/**
+	 * Checks if url is in database.
+	 * @param URL The URL You want to check
+	 * @return True if the URL is found, false otherwise.
+	 */
+	private boolean isFetched(String URL){
+		for(int i = 0; i<pageURLs.length; i++){
+			if(pageURLs[i].equals(URL)){
+				return true;
+			}
+		}
+		System.out.println("Prefetching because of " + URL);
 		return false;
 	}
 
 	/**
-	 * 
+	 * Fetches the data
 	 * @param URL
 	 * @return
 	 */
@@ -100,7 +113,9 @@ public class Prefetcher implements MangaEngine{
 		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>pages.length){
 			try {
 				StretchIconHQ icon = mangaEngine.loadImg(URL);
-				prefetch();
+				if(!isFetched(URL)){
+					prefetch();
+				}
 				if(icon==null){//Sometimes the chapter ends or starts on a blank page.
 					icon = mangaEngine.loadImg(mangaEngine.getNextPage());
 				}
@@ -128,13 +143,18 @@ public class Prefetcher implements MangaEngine{
 
 	@Override
 	public StretchIconHQ loadImg(String url) throws Exception {
+		if(url == null){
+			return null;
+		}
 		if(isCached(url)){
 			mangaEngine.setCurrentURL(url);
 			return fetch(url);
 		}
 		else{
-			StretchIconHQ out =  mangaEngine.loadImg(url);
-			prefetch();
+			StretchIconHQ out = mangaEngine.loadImg(url);
+			if(!isFetched(url)){
+				prefetch();
+			}
 			return out;
 		}
 	}
@@ -223,7 +243,7 @@ public class Prefetcher implements MangaEngine{
 			parent.revalidate();//Refreshes JFRame
 			parent.repaint();
 		}
-		/*
+		/**
 		 * Main task. Executed in background thread.
 		 */
 		@Override
@@ -246,7 +266,7 @@ public class Prefetcher implements MangaEngine{
 			return null;		
 		}
 
-		/*
+		/**
 		 * Executed in event dispatching thread
 		 */
 		@Override

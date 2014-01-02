@@ -27,11 +27,12 @@ public class MangaHereAPI implements MangaEngine{
 	private String currentURL;//Saves the current URL for future looksUps
 
 	private final static String MANGA_HERE_URL = "http://www.mangahere.com/manga/";
-	private String[][] mangaList;
+	private final String[][] mangaList;
 
 	private String[] pageURLs;
 	private String[] chapterURLs;
-
+	private String[] chapterNames;
+	
 	/**
 	 * Constructor
 	 * @throws Exception if cannot connect to website
@@ -109,7 +110,8 @@ public class MangaHereAPI implements MangaEngine{
 
 
 	public BufferedImage getImage(String URL) throws Exception{
-		Document doc = Jsoup.connect(URL).get();
+		if(URL == null || URL.equals("")){ return null;}
+		Document doc = Jsoup.connect(URL).timeout(5*1000).get();
 		Element e = doc.getElementById("image");
 		String imgUrl = e.absUrl("src");
 		return ImageIO.read(new URL(imgUrl));
@@ -131,7 +133,8 @@ public class MangaHereAPI implements MangaEngine{
 		e = e.child(0);//gets the child which contains the URL
 		String nextURL = e.absUrl("href");
 		//Special Case: End of Chapter
-		if(e== null || nextURL == null || nextURL.equals("") || nextURL.equals("javascript:void(0)")){
+		if(e== null || nextURL == null || nextURL.equals("") || nextURL.equals("javascript:void(0)")
+				|| nextURL.contains("void")){
 			//System.out.println("Next Chapter");
 			nextURL = getNextChapter(doc);
 		}
@@ -228,20 +231,11 @@ public class MangaHereAPI implements MangaEngine{
 	 * @return the list as a List<String>
 	 */
 	public List<String> getMangaList(){	
-		Document doc;
-		try {
-			doc = Jsoup.connect("http://www.mangahere.com/mangalist/").maxBodySize(0).get();
-			Elements items = doc.getElementsByClass("manga_info");
-			List<String> names = new ArrayList<String>();
-			for(Element item: items){
-				names.add(item.text());
-			}
-			return names;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		List<String> names = new ArrayList<String>(mangaList[0].length);
+		for(int i = 0; i<mangaList[0].length; i++){
+			names.add(mangaList[0][i]);
 		}
-		return null;
+		return names;
 	}
 
 	/**
@@ -337,23 +331,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * @return the chapter name.
 	 */
 	public String[] getChapterNames(){
-		String mangaURL = MANGA_HERE_URL + getMangaName().replace(' ', '_')+'/';
-		try {
-			Document doc = Jsoup.connect(mangaURL).get();
-			Element e = doc.getElementsByClass("detail_list").last();
-			Elements items = e.select("li");
-			items = items.select("a");
-			String[] names = new String[items.size()];
-			for(int i = 0; i<names.length; i++){
-				names[names.length-1-i] = items.get(i).text();//Orders Chapter Names correctly
-			}
-			names = StringUtil.formatChapterNames(names);
-			return names;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+		return chapterNames;
 	}
 
 	/**
@@ -398,7 +376,7 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	private String[][] initalizeMangaList() throws Exception{
 		String[][] out;
-		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").maxBodySize(0).get();
+		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").timeout(10*1000).maxBodySize(0).get();
 		Elements items = doc.getElementsByClass("manga_info");
 		out = new String[2][items.size()];
 		for(int i = 0; i<items.size(); i++){
@@ -420,7 +398,7 @@ public class MangaHereAPI implements MangaEngine{
 		Document doc;
 		List<String> chaptersList = new ArrayList<String>();
 		try {
-			doc = Jsoup.connect(mangaURL).get();
+			doc = Jsoup.connect(mangaURL).timeout(10*1000).get();
 			Element e = doc.getElementsByClass("detail_list").last();
 			Elements items = e.select("li");
 			items = items.select("a");
@@ -440,6 +418,29 @@ public class MangaHereAPI implements MangaEngine{
 		}
 		return out;
 	}	
+	
+	/**
+	 * Retrieves the names of the chapter
+	 * @return The current chapter name.
+	 */
+	private String[] initializeChapterNames(){
+		String mangaURL = MANGA_HERE_URL + getMangaName().replace(' ', '_')+'/';
+		try {
+			Document doc = Jsoup.connect(mangaURL).timeout(10*1000).get();
+			Element e = doc.getElementsByClass("detail_list").last();
+			Elements items = e.select("li");
+			items = items.select("a");
+			String[] names = new String[items.size()];
+			for(int i = 0; i<names.length; i++){
+				names[names.length-1-i] = items.get(i).text();//Orders Chapter Names correctly
+			}
+			return names = StringUtil.formatChapterNames(names);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	/**
 	 * Fetches a list of URLs.
@@ -505,6 +506,7 @@ public class MangaHereAPI implements MangaEngine{
 	private void refreshLists(){
 		chapterURLs = this.intializeChapterList();
 		pageURLs = this.initalizePageList();
+		chapterNames = this.initializeChapterNames();
 	}
 
 	public void close(){
