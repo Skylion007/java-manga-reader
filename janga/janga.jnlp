@@ -8,7 +8,7 @@
                 <offline-allowed/>
         </information>
         <security>
-                <all-permissions/>
+                
                 <j2ee-application-client-permissions/>
         </security>
         <resources arch="x86" os="Windows">
