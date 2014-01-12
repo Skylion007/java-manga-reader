@@ -1,13 +1,19 @@
 package org.skylion.mangareader.util;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -82,6 +88,32 @@ public class AutoSuggestor {
         	    	getTextField().getHighlighter().removeAllHighlights();
         	    }
 
+        });
+        
+        //Hides the PopUp if parent is hidden
+        this.textField.addHierarchyListener(new HierarchyListener(){
+        	
+        	private Container previousParent = getTextField().getParent();
+        	private ComponentListener cl = new ComponentAdapter(){
+        		
+        		@Override
+        		public void componentHidden(ComponentEvent ce){
+        			showPopUp(false);
+        		}
+        		
+        	};
+        	
+			@Override
+			public void hierarchyChanged(HierarchyEvent he) {
+				if(previousParent != null){
+					previousParent.addComponentListener(cl);
+				}
+				if(he.getChangedParent() != null){
+					he.getChangedParent().addComponentListener(cl);
+				}
+				previousParent = he.getChangedParent();//Updates the Previous Parent
+			}
+        	
         });
         
         setDictionary(words);
@@ -226,9 +258,9 @@ public class AutoSuggestor {
     }
 
     private void setFocusToTextField() {
-        container.toFront();
-        container.requestFocusInWindow();
-        textField.requestFocusInWindow();
+    	container.toFront();
+    	container.requestFocusInWindow();
+    	textField.requestFocusInWindow();
     }
 
     public List<SuggestionLabel> getAddedSuggestionLabels() {
@@ -290,11 +322,6 @@ public class AutoSuggestor {
 
     private void showPopUpWindow() {
         
-    	//Special case for MAC OS where it autoselects if the window spawns the first letter.
-    	if(textField.getText().length()==1 && (System.getProperty("os.name").contains("os")
-    			|| System.getProperty("os.name").contains("OS"))){
-    		return;
-    	}
     	
     	autoSuggestionPopUpWindow.getContentPane().add(suggestionsPanel);
         autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() -
@@ -322,6 +349,8 @@ public class AutoSuggestor {
         		(textField.getInsets().left + textField.getInsets().right)/2, autoSuggestionPopUpWindow.getHeight());
         autoSuggestionPopUpWindow.revalidate();
         autoSuggestionPopUpWindow.repaint();
+        
+        setFocusToTextField();
     }
 
     public void setDictionary(List<String> words) {
@@ -398,6 +427,7 @@ public class AutoSuggestor {
     public void showPopUp(boolean show){
     	this.autoSuggestionPopUpWindow.setVisible(show);
     }
+    
 }
 
 class SuggestionLabel extends JLabel {
@@ -492,4 +522,5 @@ class SuggestionLabel extends JLabel {
         	tmp.actionPerformed(new ActionEvent(textField, uniqueId, commandName));
         }
     }
+    
 }

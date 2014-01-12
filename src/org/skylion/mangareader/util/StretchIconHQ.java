@@ -1,13 +1,10 @@
 package org.skylion.mangareader.util;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.image.ImageObserver;
 
 import javax.swing.ImageIcon;
 
@@ -142,39 +139,13 @@ public class StretchIconHQ extends StretchIcon {
 	 */
 	@Override
 	public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-		Image image = getImage();
-		if (image == null) {
-			return;
-		}
-		Insets insets = ((Container) c).getInsets();
-		x = insets.left;
-		y = insets.top;
-
-		int w = c.getWidth() - x - insets.right;
-		int h = c.getHeight() - y - insets.bottom;
-
-		if (proportionate) {
-			int iw = image.getWidth(c);
-			int ih = image.getHeight(c);
-
-			if (iw * h < ih * w) {
-				iw = (h * iw) / ih;
-				x += (w - iw) / 2;
-				w = iw;
-			} else {
-				ih = (w * ih) / iw;
-				y += (h - ih) / 2;
-				h = ih;
-			}
-		}
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-		ImageObserver io = getImageObserver();
-		g2.drawImage(image, x, y, w, h, io == null ? c : io);
+		//g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+		super.paintIcon(c, g2, x, y);
 	}
 	
 }

@@ -474,7 +474,7 @@ public class MainGUI extends JFrame {
 		}
 	}
 	
-	private MouseAdapter macWorkAround = new MouseAdapter(){
+	private final MouseAdapter macWorkAround = new MouseAdapter(){
 		public void mouseClicked(MouseEvent e){
 			MainGUI.this.setVisible(false);
 			MainGUI.this.setVisible(true);
