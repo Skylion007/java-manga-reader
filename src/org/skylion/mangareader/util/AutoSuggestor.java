@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -91,8 +90,7 @@ public class AutoSuggestor {
 
         });
         
-        //Hides the PopUp if parent is hidden
-        this.textField.addHierarchyListener(new HierarchyListener(){
+        this.textField.addHierarchyListener(new HierarchyListener(){//Hides the PopUp if parent is hidden
         	
         	private Container previousParent = getTextField().getParent();
         	private ComponentListener cl = new ComponentAdapter(){
@@ -128,7 +126,7 @@ public class AutoSuggestor {
 
         suggestionsPanel = new JPanel();
         suggestionsPanel.setLayout(new GridLayout(0, 1));
-        suggestionsPanel.setBackground(popUpBackground);
+        suggestionsPanel.setBackground(popUpBackground);        
 
         addKeyBindingToRequestFocusInPopUpWindow();
     }
@@ -145,7 +143,8 @@ public class AutoSuggestor {
 
 			@Override
             public void actionPerformed(ActionEvent ae) {//focuses the first label on popwindow
-                for (int i = 0; i < suggestionsPanel.getComponentCount(); i++) {
+                resetLabelFocus();
+				for (int i = 0; i < suggestionsPanel.getComponentCount(); i++) {
                     if (suggestionsPanel.getComponent(i) instanceof SuggestionLabel) {
                         ((SuggestionLabel) suggestionsPanel.getComponent(i)).setFocused(true);
                         autoSuggestionPopUpWindow.toFront();
@@ -199,7 +198,6 @@ public class AutoSuggestor {
                     }
                 } else {//only a single suggestion was given
                     autoSuggestionPopUpWindow.setVisible(false);
-                    setFocusToTextField();
                     checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
                     setFocusToTextField();
                     
@@ -224,7 +222,6 @@ public class AutoSuggestor {
                         SuggestionLabel sl = sls.get(i);
                         if (sl.isFocused()) {
                             if (lastFocusableIndex == 0) {
-                                lastFocusableIndex = max - 1;
                                 sl.setFocused(false);
                                 autoSuggestionPopUpWindow.setVisible(false);
                                 setFocusToTextField();
@@ -235,7 +232,7 @@ public class AutoSuggestor {
                                 lastFocusableIndex = i;
                             }
                         } else if (lastFocusableIndex >= i) {
-                            if (i < 0) {
+                            if (i >= 0) {
                                 sl.setFocused(true);
                                 autoSuggestionPopUpWindow.toFront();
                                 autoSuggestionPopUpWindow.requestFocusInWindow();
@@ -248,7 +245,6 @@ public class AutoSuggestor {
                     }
                 } else {//only a single suggestion was given
                     autoSuggestionPopUpWindow.setVisible(false);
-                    setFocusToTextField();
                     checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
                     setFocusToTextField();
                     
@@ -280,9 +276,11 @@ public class AutoSuggestor {
 
         suggestionsPanel.removeAll();//remove previos words/jlabels that were added
 
-        //used to calcualte size of JWindow as new Jlabels are added
+        //used to calculate size of JWindow as new Jlabels are added
         tW = 0;
         tH = 0;
+        
+        lastFocusableIndex = 0;//Resets the index
 
         boolean added = wordTyped(typedWord);
 
@@ -331,24 +329,13 @@ public class AutoSuggestor {
         autoSuggestionPopUpWindow.setSize(tW, tH);
         autoSuggestionPopUpWindow.setVisible(true);
 
-        int windowX = 0;
-        int windowY = 0;
-
-
-		if(container.getY()==0){//Special Case: When Screen is Maximized or FullScreen
-			windowY = container.getInsets().top + (textField.getY() + textField.getHeight());
-		} else if (suggestionsPanel.getHeight() > autoSuggestionPopUpWindow.getMinimumSize().height) {
-            windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getMinimumSize().height;
-        } else {
-            windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getHeight();
-        }
-        
-        //Sets the location with minor adjustments to make it match the JTextField area without the borders
-        autoSuggestionPopUpWindow.setLocation((windowX + textField.getInsets().left), windowY);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() - textField.getInsets().left 
-        		- textField.getInsets().right, 30));
-        autoSuggestionPopUpWindow.setSize(textField.getWidth() - //Minor Adjustment to make it the exact same size
-        		(textField.getInsets().left + textField.getInsets().right)/2, autoSuggestionPopUpWindow.getHeight());
+        //Calculates the optimal window location
+        int windowX = container.getX() + container.getInsets().left + textField.getX() + textField.getMargin().left + 3;
+        int windowY = container.getY() + container.getInsets().top - textField.getInsets().bottom + textField.getY() + textField.getHeight();
+        				
+        autoSuggestionPopUpWindow.setLocation((windowX), windowY);
+        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth() - textField.getInsets().right, 30));
+        autoSuggestionPopUpWindow.setSize(textField.getWidth() - textField.getInsets().right, autoSuggestionPopUpWindow.getHeight());
         autoSuggestionPopUpWindow.revalidate();
         autoSuggestionPopUpWindow.repaint();
         
@@ -411,7 +398,7 @@ public class AutoSuggestor {
     			fullymatches = false;
     		}
     		if (fullymatches) {
-    	        if(tH>Toolkit.getDefaultToolkit().getScreenSize().height - textField.getY()){
+    	        if(tH>container.getHeight() - textField.getY() - textField.getHeight()){
     	        	break;//Prevents the suggestions panel from drawing unused suggestionLabels offscreen
     	        }
     			addWordToSuggestions(word);
@@ -429,17 +416,34 @@ public class AutoSuggestor {
     	this.autoSuggestionPopUpWindow.setVisible(show);
     }
     
+    protected void setSelectedSuggestionLabel(SuggestionLabel sl){
+    	List<SuggestionLabel> sls = getAddedSuggestionLabels();
+    	
+    	if(lastFocusableIndex<sls.size() && (sl == null || sls.contains(sl))){
+    		sls.get(lastFocusableIndex).setFocused(false);//Resets the index
+    	}
+    	
+    	if(!sls.contains(sl)){
+    		return;
+    	}
+    	
+    	sl.setFocused(true);
+    	lastFocusableIndex = sls.indexOf(sl);
+    }
+ 
+    private void resetLabelFocus(){
+    	getAddedSuggestionLabels().get(lastFocusableIndex).setFocused(false);
+    	lastFocusableIndex = 0;
+    }
 }
 
 class SuggestionLabel extends JLabel {
 
     /**
-	 * 
+	 * Auto-generated serial long
 	 */
 	private static final long serialVersionUID = 1L;
-	/**
-	 * 
-	 */
+
 	
 	private boolean focused = false;
     private final JWindow autoSuggestionsPopUpWindow;
@@ -466,18 +470,22 @@ class SuggestionLabel extends JLabel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent me) {
-                super.mouseClicked(me);
                 replaceWithSuggestedText();
                 autoSuggestionsPopUpWindow.setVisible(false);
                 fireTextFieldActionEvents();
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent me) {
+            	autoSuggestor.setSelectedSuggestionLabel(SuggestionLabel.this);//Highlights selected label
             }
         });
 
         getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), "Enter released");
         getActionMap().put("Enter released", new AbstractAction() {
             /**
-			 * Default Generated
-			 */
+        	 * Auto-generated serial long
+        	 */
 			private static final long serialVersionUID = 2010022788442417401L;
 
 			@Override
