@@ -554,6 +554,7 @@ public class MainGUI extends JFrame {
 		for(int i = 0; i<mangaEngine.getPageList().length; i++){
 			pages[i] = ("Pg: " + (i+1));
 		}
+		System.out.print("UPDATED ");
 		pageSel.setModel(new DefaultComboBoxModel<String>(pages));
 	}
 	

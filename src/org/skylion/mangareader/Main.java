@@ -14,8 +14,13 @@ import org.skylion.mangareader.gui.MainGUI;
 
 public class Main {
 	public static void main(String[] args) {
-		try{
+		try {
 			new URL("jar:file://dummy.jar!/").openConnection().setDefaultUseCaches(false);//Disable caching
+		}
+		catch(Exception ex){
+			//Will never happen
+		}
+		try{
 			Color neptune = new Color(18,55,63);
 			//Loads the Nimbus look and feel
 			//Retrieval method is convulted, but stable.

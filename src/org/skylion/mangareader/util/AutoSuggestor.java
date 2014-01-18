@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -106,7 +107,7 @@ public class AutoSuggestor {
 			@Override
 			public void hierarchyChanged(HierarchyEvent he) {
 				if(previousParent != null){
-					previousParent.addComponentListener(cl);
+					previousParent.removeComponentListener(cl);
 				}
 				if(he.getChangedParent() != null){
 					he.getChangedParent().addComponentListener(cl);
@@ -234,7 +235,7 @@ public class AutoSuggestor {
                                 lastFocusableIndex = i;
                             }
                         } else if (lastFocusableIndex >= i) {
-                            if (i < max) {
+                            if (i < 0) {
                                 sl.setFocused(true);
                                 autoSuggestionPopUpWindow.toFront();
                                 autoSuggestionPopUpWindow.requestFocusInWindow();
@@ -296,10 +297,11 @@ public class AutoSuggestor {
     }
 
     protected void addWordToSuggestions(String word) {
-        SuggestionLabel suggestionLabel = new SuggestionLabel(word, suggestionFocusedColor, suggestionsTextColor, this);
-
+    	
+    	SuggestionLabel suggestionLabel = new SuggestionLabel(word, suggestionFocusedColor, suggestionsTextColor, this);
+    	
         calculatePopUpWindowSize(suggestionLabel);
-
+        
         suggestionsPanel.add(suggestionLabel);
     }
 
@@ -358,12 +360,8 @@ public class AutoSuggestor {
         if (words == null) {
             return;//so we can call constructor with null value for dictionary without exception thrown
         }
-        for (String word : words) {
-            dictionary.add(word);
-        }
         //Converts List<String> to remove duplicates
-        Set<String> s = new LinkedHashSet<String>(dictionary);
-        dictionary.clear();
+        Set<String> s = new LinkedHashSet<String>(words);
         dictionary.addAll(s);
         Collections.sort(dictionary);//The List works much better when sorted
     }
@@ -413,6 +411,9 @@ public class AutoSuggestor {
     			fullymatches = false;
     		}
     		if (fullymatches) {
+    	        if(tH>Toolkit.getDefaultToolkit().getScreenSize().height - textField.getY()){
+    	        	break;//Prevents the suggestions panel from drawing unused suggestionLabels offscreen
+    	        }
     			addWordToSuggestions(word);
     			suggestionAdded = true;
     		}
