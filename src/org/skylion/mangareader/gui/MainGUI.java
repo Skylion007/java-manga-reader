@@ -18,6 +18,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Closeable;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
@@ -101,11 +103,17 @@ public class MainGUI extends JFrame {
 
 	public MainGUI(){
 		super();
-		try {
-			mangaEngine = new Prefetcher(this.getContentPane(), new MangaHereAPI());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		int attempt = 0;
+		while(attempt<3){
+			try {
+				mangaEngine = new Prefetcher(this.getContentPane(), new MangaHereAPI());
+				break;
+			} catch (Exception e) {
+				e.printStackTrace();
+				attempt++;
+			}
+		}
+		if(attempt>=3){
 			Toolkit.getDefaultToolkit().beep();
 			System.exit(ABORT);
 			return;
@@ -147,7 +155,7 @@ public class MainGUI extends JFrame {
 		
 		//Wraps the TextField with my custom autosuggestion box
 		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList(), 
-				Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f);
+				Color.WHITE.brighter(), Color.BLUE, Color.MAGENTA.darker(), 0.75f);
 		
 		//Sets up the page
 		page = new JLabel(){
@@ -237,7 +245,9 @@ public class MainGUI extends JFrame {
 				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
 					String engineName = (String)engineSel.getSelectedItem();
 					try {
-						mangaEngine.close();
+						if(mangaEngine instanceof Closeable){
+							((Closeable) mangaEngine).close();
+						}
 						mangaEngine = new Prefetcher(MainGUI.this, mangaEngineMap.get(engineName));
 						loadPage(mangaEngine.loadImg(mangaEngine.getCurrentURL()));
 						refreshLists();
@@ -321,14 +331,19 @@ public class MainGUI extends JFrame {
 		
 		//toolbar.setBackground(toolbar.getParent().getBackground());
 		
-		//Experimental auto-hide functio
+		//Experimental auto-hide functionality
+//		final JToggleButton lockToolbar = new JToggleButton("V");
+//		lockToolbar.setSelected(true);
+//		lockToolbar.setForeground(Color.WHITE);
+//		lockToolbar.setBackground(Color.GREEN.darker());
+//		lockToolbar.setFont(next.getFont());
+//		toolbar.add(lockToolbar);
 //		pane.addMouseMotionListener(new MouseAdapter() {
 //		    public void mouseMoved (MouseEvent me) {
 //		        boolean was = toolbar.isVisible();
-//		    	if (toolbar.getBounds().contains(me.getPoint())) {//If mouseOver
+//		    	if (!was && toolbar.getBounds().contains(me.getPoint())) {//If mouseOver
 //					toolbar.setVisible(true);
-		
-//		        } else {
+//		        } else if(!lockToolbar.isSelected()){
 //		            toolbar.setVisible(false);
 //		        }
 //		    	if(was != toolbar.isVisible()){
@@ -490,6 +505,8 @@ public class MainGUI extends JFrame {
 	 * @param newURL
 	 */
 	private void loadPage(String URL){
+		int attempts = 0;
+		while(attempts < 3)
 		try {
 			if(mangaEngine.getCurrentURL().equals(URL)){
 				return;//No need to waste time reloading a page.
@@ -497,17 +514,20 @@ public class MainGUI extends JFrame {
 			loadPage(mangaEngine.loadImg(URL));
 			page.setText(null);
 			updateStatus();
+			return;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			if(e instanceof SocketTimeoutException){
+				//Do nothing allow reattempt
+			}
 			page.setIcon(null);
 			page.setText("<html><p><center>An error has occured :(</p>" +
 					"<h1>Sorry, the currently requested title or page number could not be found. " +
 					"Please try a different page, chapter, or manga source. " +
 					"If you encountered this error while searching for a manga title, " +
 					"the manga you currently have requested is most likely licensed; " +
-					"hence, not available in your country and/or region." +
-					" We apologize for this inconvenience.</h1> " +
+					"hence, not available in your country and/or region. " +
+					"We apologize for this inconvenience.</h1> " +
 					"<h1>Thank you for your cooperation!</h1></center></html>");
 			Toolkit.getDefaultToolkit().beep();
 			return;

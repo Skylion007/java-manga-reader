@@ -508,8 +508,4 @@ public class MangaHereAPI implements MangaEngine{
 		pageURLs = this.initalizePageList();
 		chapterNames = this.initializeChapterNames();
 	}
-
-	public void close(){
-		//DO NOTHING
-	}
 }

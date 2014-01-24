@@ -446,9 +446,5 @@ public class MangaReaderAPI implements MangaEngine{
 			return null;
 		}
 	}
-	
-	public void close(){
-		//DO NOTHING
-	}
 
 }

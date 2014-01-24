@@ -390,10 +390,6 @@ public class MangaPandaAPI implements MangaEngine{
 		this.chapterNames = initializeChapterNames();
 	}
 	
-	public void close(){
-		//DO NOTHING
-	}
-	
 	/**
 	 * Generates a list of all the pages in the current chapter of the current manga
 	 * @return A list of all pages in the current chapter of the current manga
