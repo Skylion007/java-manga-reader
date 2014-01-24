@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.Closeable;
 import java.util.List;
 
 import javax.swing.JProgressBar;
@@ -19,7 +20,7 @@ import org.skylion.mangareader.util.StretchIconHQ;;
  * @author Skylion
  *
  */
-public class Prefetcher implements MangaEngine{
+public class Prefetcher implements MangaEngine, Closeable{
 
 	private MangaEngine mangaEngine;//Current MangaEngine
 	private StretchIconHQ[] pages;//Current Images
