@@ -81,11 +81,14 @@ public class AutoSuggestor {
         	 
         		public void focusGained(FocusEvent e) {
         			getTextField().getHighlighter().removeAllHighlights();
-        	    }
+        		}
 
         	    @Override
         	    public void focusLost(FocusEvent e) {
         	    	getTextField().getHighlighter().removeAllHighlights();
+        	    	if(!(e.getOppositeComponent() instanceof Window || e.getOppositeComponent() instanceof SuggestionLabel) && isPopUpVisible()){
+        	    		showPopUp(false);
+        	    	}
         	    }
 
         });
@@ -113,6 +116,18 @@ public class AutoSuggestor {
 				previousParent = he.getChangedParent();//Updates the Previous Parent
 			}
         	
+        });
+        
+        mainWindow.addComponentListener(new ComponentAdapter(){
+            @Override
+            public void componentResized(ComponentEvent e) {
+            	checkForAndShowSuggestions();
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+            	checkForAndShowSuggestions();
+            }
         });
         
         setDictionary(words);
@@ -251,7 +266,7 @@ public class AutoSuggestor {
                 }
             }
         });
-
+                
     }
 
     private void setFocusToTextField() {
@@ -398,7 +413,8 @@ public class AutoSuggestor {
     			fullymatches = false;
     		}
     		if (fullymatches) {
-    	        if(tH>container.getHeight() - textField.getY() - textField.getHeight()){
+    	        if(tH>container.getHeight()-container.getInsets().top-container.getInsets().bottom-
+    	        		textField.getY() - textField.getHeight()){
     	        	break;//Prevents the suggestions panel from drawing unused suggestionLabels offscreen
     	        }
     			addWordToSuggestions(word);
