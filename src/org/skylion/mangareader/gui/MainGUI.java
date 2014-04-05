@@ -30,7 +30,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -80,7 +79,7 @@ public class MainGUI extends JFrame {
 	 */
 	private JTextField mangaSelect;//MangaSelect
 	private AutoSuggestor autoSelect;//My Autosuggestion Decorator
-	private JLabel page; //That page currently displayed
+	private ImagePanel page; //That page currently displayed
 	private boolean fullScreen = false;//Is in Fullscreen?
 	
 	
@@ -103,21 +102,6 @@ public class MainGUI extends JFrame {
 
 	public MainGUI(){
 		super();
-		int attempt = 0;
-		while(attempt<3){
-			try {
-				mangaEngine = new Prefetcher(this.getContentPane(), new MangaHereAPI());
-				break;
-			} catch (Exception e) {
-				e.printStackTrace();
-				attempt++;
-			}
-		}
-		if(attempt>=3){
-			Toolkit.getDefaultToolkit().beep();
-			System.exit(ABORT);
-			return;
-		}
 		initGUI();
 	}
 
@@ -152,24 +136,28 @@ public class MainGUI extends JFrame {
 				refreshLists();
 			}
 		});
+	
+		int attempts = 0;
+		while(attempts<3){
+			try{
+				mangaEngineMap.put("MangaReader", new MangaReaderAPI());
+				mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
+				mangaEngineMap.put("MangaHere", new MangaHereAPI());
+				break;
+			}
+			catch(Exception ex){
+				ex.printStackTrace();
+			}
+		}
+		
+		mangaEngine = new Prefetcher(this, mangaEngineMap.get("MangaHere"));
 		
 		//Wraps the TextField with my custom autosuggestion box
 		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList(), 
 				Color.WHITE.brighter(), Color.BLUE, Color.MAGENTA.darker(), 0.75f);
 		
 		//Sets up the page
-		page = new JLabel(){
-			/**
-			 * Auto-generated SerialVersionUID
-			 */
-			private static final long serialVersionUID = 532613206165392749L;
-
-			protected void paintComponent(Graphics g){
-				Graphics2D g2d = (Graphics2D)g;
-				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-				super.paintComponent(g2d);
-			}
-		};
+		page = new ImagePanel();
 		page.setPreferredSize(getEffectiveScreenSize());
 		page.setBackground(Color.BLACK);
 		page.setForeground(next.getForeground());
@@ -225,15 +213,6 @@ public class MainGUI extends JFrame {
 		});
 		
 		//Initializes mangaEngineSel
-		try{
-			mangaEngineMap.put("MangaReader", new MangaReaderAPI());
-			mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
-			mangaEngineMap.put("MangaHere", new MangaHereAPI());
-		}
-		catch(Exception ex){
-			ex.printStackTrace();
-			return;
-		}
 		engineSel = new JComboBox<String>();
 		for(String s: mangaEngineMap.keySet()){
 			engineSel.addItem(s);

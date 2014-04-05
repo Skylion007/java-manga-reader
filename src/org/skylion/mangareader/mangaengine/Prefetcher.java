@@ -211,6 +211,14 @@ public class Prefetcher implements MangaEngine, Closeable{
 	public String getMangaURL(String mangaName) {
 		return mangaEngine.getMangaURL(mangaName);
 	}
+	
+	/**
+	 * Returns the MangaEngine that the class wraps
+	 * @return The wrapped MangaEngine
+	 */
+	public MangaEngine getMangaEngine(){
+		return mangaEngine;
+	}
 
 	@Override
 	public int getCurrentPageNum() {
@@ -227,6 +235,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 		return mangaEngine.getChapterNames();
 	}
 
+	@Override
 	public void close(){
 		if(task!=null && !task.isDone() && !task.isCancelled()){//Cancels previous task before starting a new one.
 			task.cancel(true);
