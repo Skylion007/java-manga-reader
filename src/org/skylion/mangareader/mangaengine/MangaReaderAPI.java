@@ -13,7 +13,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.skylion.mangareader.mangaengine.MangaEngine;
-import org.skylion.mangareader.util.StretchIconHQ;
 import org.skylion.mangareader.util.StringUtil;
 
 /**
@@ -82,7 +81,7 @@ public class MangaReaderAPI implements MangaEngine{
 	 * See getImage for simple image grabbing.
 	 */
 	@Override
-	public StretchIconHQ loadImg(String url) throws Exception {
+	public BufferedImage loadImg(String url) throws Exception {
 		if(url==null || url.equals("")){
 			System.out.println(url);
 			throw new Exception("INVALID PARAMETER");
@@ -95,7 +94,7 @@ public class MangaReaderAPI implements MangaEngine{
 		if(hasMangaChanged || hasChapterChanged){
 			refreshLists(); //Refreshes Chapter & Page URLs
 		}
-		return new StretchIconHQ(image,url);
+		return image;
 	}
 
 	/**

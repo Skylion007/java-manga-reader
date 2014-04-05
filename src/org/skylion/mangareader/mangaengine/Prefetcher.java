@@ -12,8 +12,6 @@ import java.util.List;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
-import org.skylion.mangareader.util.StretchIconHQ;;
-
 /**
  * A class that wraps a MangaEngine and prefetches from it to improve speed.
  * The class also adds a progress bar to the JFrame to show how the prefetching is going.
@@ -23,7 +21,7 @@ import org.skylion.mangareader.util.StretchIconHQ;;
 public class Prefetcher implements MangaEngine, Closeable{
 
 	private MangaEngine mangaEngine;//Current MangaEngine
-	private StretchIconHQ[] pages;//Current Images
+	private BufferedImage[] pages;//Current Images
 	private String[] pageURLs; //URLs corresponding to current images
 	private String mangaName;//CurrentMangaName
 
@@ -51,7 +49,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 	public void prefetch(){
 		mangaName = mangaEngine.getMangaName();
 		pageURLs = mangaEngine.getPageList();
-		pages = new StretchIconHQ[pageURLs.length];
+		pages = new BufferedImage[pageURLs.length];
 		progressBar.setValue(0);
 		progressBar.setMaximum(pageURLs.length);
 		progressBar.setStringPainted(true);
@@ -110,10 +108,10 @@ public class Prefetcher implements MangaEngine, Closeable{
 	 * @param URL
 	 * @return
 	 */
-	private StretchIconHQ fetch(String URL){
+	private BufferedImage fetch(String URL){
 		if(!isCached(URL) || mangaEngine.getCurrentPageNum()>pages.length){
 			try {
-				StretchIconHQ icon = mangaEngine.loadImg(URL);
+				BufferedImage icon = mangaEngine.loadImg(URL);
 				if(!isFetched(URL)){
 					prefetch();
 				}
@@ -143,7 +141,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 	}
 
 	@Override
-	public StretchIconHQ loadImg(String url) throws Exception {
+	public BufferedImage loadImg(String url) throws Exception {
 		if(url == null){
 			return null;
 		}
@@ -152,7 +150,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 			return fetch(url);
 		}
 		else{
-			StretchIconHQ out = mangaEngine.loadImg(url);
+			BufferedImage out = mangaEngine.loadImg(url);
 			if(!isFetched(url)){
 				prefetch();
 			}
@@ -262,7 +260,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 				int attemptNum = 0;
 				while(attemptNum <=3){//Retries three times to load the image.
 					try{		
-						pages[i] = new StretchIconHQ(mangaEngine.getImage(pageURLs[i]));//Loads image
+						pages[i] = mangaEngine.getImage(pageURLs[i]);//Loads image
 						progressBar.setValue(i);//Updates progressbar
 						progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
 						break;

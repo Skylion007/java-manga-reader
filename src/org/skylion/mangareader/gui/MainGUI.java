@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -499,7 +500,7 @@ public class MainGUI extends JFrame {
 			if(e instanceof SocketTimeoutException){
 				//Do nothing allow reattempt
 			}
-			page.setIcon(null);
+			page.loadImage(null);
 			page.setText("<html><p><center>An error has occured :(</p>" +
 					"<h1>Sorry, the currently requested title or page number could not be found. " +
 					"Please try a different page, chapter, or manga source. " +
@@ -513,8 +514,8 @@ public class MainGUI extends JFrame {
 		}
 	}
 
-	private void loadPage(StretchIconHQ image){
-		page.setIcon(image);
+	private void loadPage(BufferedImage image){
+		page.loadImage(image);
 	}
 
 	/**

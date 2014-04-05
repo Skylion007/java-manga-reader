@@ -3,7 +3,6 @@ package org.skylion.mangareader.mangaengine;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-import org.skylion.mangareader.util.StretchIconHQ;
 
 /**
  * An interface used for Manga Scrapers
@@ -14,7 +13,7 @@ public interface MangaEngine {
 
 	public String getCurrentURL();
 	public void setCurrentURL(String url);
-	public StretchIconHQ loadImg(String url)throws Exception;
+	public BufferedImage loadImg(String url)throws Exception;
 	public BufferedImage getImage(String url) throws Exception;
 	
 	

@@ -396,10 +396,10 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	 * @param image The current image
 	 */
 	public void loadImage(BufferedImage image){
+		this.image = image;
 		if(image == null){
 			return;
 		}
-		this.image = image;
 		setScale(this.getPreferredScale(image));
 		x = y = 0;
 		repaint();
