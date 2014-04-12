@@ -41,7 +41,6 @@ public class MangaEdenAPI implements MangaEngine{
 
 	public MangaEdenAPI() throws Exception {
 		currentManga = this.getMangaURL("Mirai Nikki");
-		System.out.println("THIS IS CURRENT MANGA " + currentManga);
 		chapterURLs = this.initializeChapterList();
 		currentChapter = 0;
 		pageURLs = this.initializePageList();
@@ -66,7 +65,6 @@ public class MangaEdenAPI implements MangaEngine{
 				this.currentChapter = chapterIndex;
 				this.currentPage = 0;
 				refreshLists();
-				System.out.println("HELP");
 				return;
 			}
 		} 
@@ -223,10 +221,7 @@ public class MangaEdenAPI implements MangaEngine{
 	 */
 	private static String[][] initializeMangaList(){
 		try {
-			long time = System.currentTimeMillis();
 			String raw = multiPageFetch(25);
-			System.out.println("Time = " + (System.currentTimeMillis()-time));
-			System.out.println("DOWNLOAD DONE");
 			String[] manga = raw.split("\\},");
 			String[][] mangaProps = new String[manga.length][7];
 			for(int i = 0; i<manga.length; i++){
