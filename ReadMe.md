@@ -19,6 +19,7 @@ a sleek, intuitive experience.
 * MangaHere
 * MangaPanda
 * MangaReader.net
+* MangaEden
 
 ##Dependencies
 * JSoup 1.7.2 or higher
