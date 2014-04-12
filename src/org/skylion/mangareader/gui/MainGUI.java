@@ -36,6 +36,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import org.skylion.mangareader.mangaengine.MangaEdenAPI;
 import org.skylion.mangareader.mangaengine.MangaEngine;
 import org.skylion.mangareader.mangaengine.MangaHereAPI;
 import org.skylion.mangareader.mangaengine.MangaPandaAPI;
@@ -144,9 +145,11 @@ public class MainGUI extends JFrame {
 				mangaEngineMap.put("MangaReader", new MangaReaderAPI());
 				mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
 				mangaEngineMap.put("MangaHere", new MangaHereAPI());
+				mangaEngineMap.put("MangaEden", new MangaEdenAPI());
 				break;
 			}
 			catch(Exception ex){
+				Toolkit.getDefaultToolkit().beep();
 				ex.printStackTrace();
 			}
 		}

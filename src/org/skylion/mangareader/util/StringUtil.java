@@ -1,5 +1,14 @@
 package org.skylion.mangareader.util;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Utility class that houses commonly used methods for String parsing
  * @author Skylion
@@ -88,4 +97,88 @@ public final class StringUtil {
 	    }
 	    return b.toString();
 	}
+
+	/**
+	 * Determines the index of the String in the an array of Strings
+	 * @param input The array you want to search through
+	 * @param searchTerm The String you want to search
+	 * @return The index of the searchTerm in the input or -1 if it is not found.
+	 */
+	public static int indexOf(String[] input, String searchTerm){
+		for(int i = 0; i<input.length; i++){
+			if(searchTerm.equals(input[i])){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	/**
+	 * Downloads the text from a specified URL
+	 * @param url The URL you want to get the text from.
+	 * @return The downloaded text
+	 * @throws IOException If something went wrong
+	 */
+	public static String urlToText(String url) throws IOException{
+		return urlToText(new URL(url));
+	}
+	
+	/**
+	 * Downloads the text from the specified URL
+	 * @param url The URL you want to get the text from
+	 * @return The downloaded text.
+	 * @throws IOException If something went wrong
+	 */
+	public static String urlToText(URL url) throws IOException{
+		URLConnection urlConn = url.openConnection(); //Open connection
+		Reader r = new java.io.InputStreamReader(urlConn.getInputStream(), Charset.forName("UTF-8"));//Gets Data Converts to string
+		StringBuilder buf = new StringBuilder();
+		while (true) {//Reads String from buffer
+			int ch = r.read();
+			if (ch < 0)
+				break;
+			buf.append((char) ch);
+		}
+		String str = buf.toString();
+		r.close();
+		return str;
+	}
+
+	/**
+	 * Converts a collection of Strings into one long String.
+	 * @param collection The collection you want to get the String from
+	 * @return The String generated from the collection
+	 */
+	public static String concatCollection(Collection<String> collection){
+		StringBuilder sb = new StringBuilder(collection.size());
+		for(String s: collection){
+			sb.append(String.valueOf(s));
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * Removes null entries from an array of Strings
+	 * @param strs The String you want to remove the null entries from
+	 * @return The cleaned array
+	 */
+	public static String[] cleanArray(String[] strs){
+	    List<String> list = new ArrayList<String>();
+	    for(String s : strs) {
+	       if(s != null && s.length() > 0) {
+	          list.add(s);
+	       }
+	    }
+	    return list.toArray(new String[list.size()]);
+	}
+	
+	/**
+	 * Strips the quotes and gets the text between them
+	 * @param input The String
+	 * @return The stripped String
+	 */
+	public static String stripQuotes(String input){
+		return input.substring(input.indexOf('"')+1, input.lastIndexOf('"'));
+	}
+
 }
