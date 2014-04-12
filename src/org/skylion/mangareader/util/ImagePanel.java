@@ -1,5 +1,6 @@
 package org.skylion.mangareader.util;
 
+import java.awt.AWTException;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -7,7 +8,9 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.MenuContainer;
+import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Robot;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -131,10 +134,19 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 				if(SwingUtilities.isRightMouseButton(me)){//Zooms in and out
 					if(!isZoomed){
 						setScale(scale*1.5);
+						double dx = me.getX() - getWidth()/2;
+						double dy = me.getY() - getHeight()/2;
+						dx*=getZoomFactor();
+						dy*=getZoomFactor();
+						x-=dx;
+						y-=dy;
 						setDoubleBuffered(false);
 						isZoomed = true;
 					}
 					else{
+//						Point p = me.getPoint();
+//						p.translate(-getWidth()/2, -getHeight()/2);
+//						System.out.println(p);
 						setScale(getPreferredScale());
 						setDoubleBuffered(true);
 						x = y = 0;
@@ -207,23 +219,25 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 		this.addMouseWheelListener(new MouseAdapter(){//This listener zooms using mouse wheel
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent me){
-//				int dx = me.getX();
-//				int dy = me.getY();
-//				dx-= (int)(getImage().getWidth()/2 * getPreferredScale());
-//				dy-= (int)(getImage().getHeight()/2 * getPreferredScale());
-//				System.out.println(dx + " , " + dy);
-//				dx/=getScale();
-//				dy/=getScale();
-//				//p.translate((int)Math.rint(x), (int)Math.rint(y));
-//				x -= dx;
-//				y -= dy;
 				double scaleChange = me.getWheelRotation()/100d;
 				if(!(getZoomFactor()<=.25 && scaleChange<0)){
 					setScale(getScale() + scaleChange);
 				}
-			}
-			
-			
+				double dx = me.getX() - getWidth()/2;
+				double dy = me.getY() - getHeight()/2;
+				dx/=getZoomFactor();
+				dy/=getZoomFactor();
+				x-=dx;
+				y-=dy;				
+				try {//Makes the origin reset only happen once.
+					Robot bot = new Robot();
+					Point loc = getLocationOnScreen();
+					loc.translate(getWidth()/2, getHeight()/2);
+					bot.mouseMove(loc.x, loc.y);
+				} catch (AWTException e) {
+					e.printStackTrace();
+				}
+			}			
 		});
 		this.addComponentListener(new ComponentAdapter(){//Resizes image when component resizes
 			@Override
