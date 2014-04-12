@@ -161,23 +161,18 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 			@Override
 			public void mouseDragged(MouseEvent me){
 				if(scale!=getPreferredScale() && SwingUtilities.isLeftMouseButton(me)){
-					final int SENSITIVITY = 2;//Slows down panning
-					
 					setDoubleBuffered(false);
 					
 					//Calculates motion + acceleration
 					double xDrift = me.getX() - startX;
 					double yDrift = me.getY() - startY;
 					
-					xDrift*=SENSITIVITY;
-					yDrift*=SENSITIVITY;
-					
-					if(isXValid(xDrift)){
+					if(isXValid(x+xDrift)){
 						x+=xDrift;
 						startX = me.getX();
 					}
 					
-					if(isYValid(yDrift)){
+					if(isYValid(y+yDrift)){
 						y+=yDrift;	
 						startY = me.getY();
 					}					
@@ -186,12 +181,49 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 					setDoubleBuffered(true);
 				}
 			}
+			
+			/**
+			 * Determines if the value + the x value will be valid
+			 * @param x The value you want to pan to.
+			 * @return True if valid else false;
+			 */
+			private boolean isXValid(double x){
+				BufferedImage image = getImage();
+				double xImageCenter = getX() + image.getWidth()/2;
+				return x+xImageCenter>=image.getMinX() && x+xImageCenter<=image.getWidth();
+			}
+			
+			/**
+			 * Determines if the value + the y value will be valid
+			 * @param y The value you want to pan to.
+			 * @return True if valid else false;
+			 */
+			private boolean isYValid(double y){
+				BufferedImage image = getImage();
+				double yImageCenter = getY() + image.getHeight()/2;
+				return y+yImageCenter>=image.getMinY() && y+yImageCenter<=image.getHeight();
+			}
 		});
 		this.addMouseWheelListener(new MouseAdapter(){//This listener zooms using mouse wheel
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent me){
-				setScale(getScale() + me.getWheelRotation()/100d);
+//				int dx = me.getX();
+//				int dy = me.getY();
+//				dx-= (int)(getImage().getWidth()/2 * getPreferredScale());
+//				dy-= (int)(getImage().getHeight()/2 * getPreferredScale());
+//				System.out.println(dx + " , " + dy);
+//				dx/=getScale();
+//				dy/=getScale();
+//				//p.translate((int)Math.rint(x), (int)Math.rint(y));
+//				x -= dx;
+//				y -= dy;
+				double scaleChange = me.getWheelRotation()/100d;
+				if(!(getZoomFactor()<=.25 && scaleChange<0)){
+					setScale(getScale() + scaleChange);
+				}
 			}
+			
+			
 		});
 		this.addComponentListener(new ComponentAdapter(){//Resizes image when component resizes
 			@Override
@@ -202,26 +234,6 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 			}
 		});
 
-	}
-	
-	/**
-	 * Determines if the value + the x value will be valid
-	 * @param x The value you want to pan to.
-	 * @return True if valid else false;
-	 */
-	private boolean isXValid(double x){
-		double xImageCenter = this.x + image.getWidth()/2;
-		return x+xImageCenter>=image.getMinX() && x+xImageCenter<=image.getWidth();
-	}
-	
-	/**
-	 * Determines if the value + the y value will be valid
-	 * @param y The value you want to pan to.
-	 * @return True if valid else false;
-	 */
-	private boolean isYValid(double y){
-		double yImageCenter = this.y + image.getHeight()/2;
-		return y+yImageCenter>=image.getMinY() && y+yImageCenter<=image.getHeight();
 	}
 
 	@Override
@@ -260,20 +272,6 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	}
 
 	/**
-	 * Return the preferred size based off of image scale (-1
-	 */
-	@Override
-	public Dimension getPreferredSize()  
-	{  
-		if(image == null){
-			return super.getPreferredSize();
-		}
-		int w = (int)(scale * image.getWidth());  
-		int h = (int)(scale * image.getHeight());  
-		return new Dimension(w, h);  
-	}  
-
-	/**
 	 * Sets the PreferredSize by modifying the image scale
 	 */
 	@Override
@@ -296,8 +294,7 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	 * Sets the scale of the image
 	 * @param The new scale in percent that you want to set the iage to
 	 */
-	public void setScale(double s)  
-	{
+	protected void setScale(double s)  {
 		if(s<=0){
 			return;
 		}
@@ -328,50 +325,24 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	}
 
 	/**
-	 * Extracts a BufferedImage from an Icon
-	 * @param icon The icon to extract the image from
-	 * @return The extracted BufferedImage
-	 */
-	private static BufferedImage extractImageFromIcon(Icon icon){
-		if(icon == null || !(icon instanceof ImageIcon)){
-			return null;
-		}
-		Image image = (Image)((ImageIcon)icon).getImage();
-		if(image == null){
-			return null;
-		}
-		return convertToBufferedImage(image);
-	}
-
-	/**
-	 * Converts an image to a BufferedImage
-	 * @param The image to extract the BufferedIMage
-	 * @return The extracted BufferedImage
-	 */
-	private static BufferedImage convertToBufferedImage(Image image){
-		if(image instanceof sun.awt.image.ToolkitImage){
-			return ((sun.awt.image.ToolkitImage) image).getBufferedImage();
-		}
-		else if(image instanceof Image){
-			return (BufferedImage)image;
-		}
-		else{
-			return null;
-		}
-	}
-
-	/**
 	 * @return The current Scale factor (from the image's actual pixel size)
 	 */
-	public double getScale(){
+	protected double getScale(){
 		return scale;
 	}
 
 	/**
-	 * @return The scale value from the default scale value.
+	 * Return the preferred size based off of image scale (-1
 	 */
-	public double getScaleFactor(){
-		return getScale()/this.getPreferredScale();
+	@Override
+	public Dimension getPreferredSize()  
+	{  
+		if(image == null){
+			return super.getPreferredSize();
+		}
+		int w = (int)(scale * image.getWidth());  
+		int h = (int)(scale * image.getHeight());  
+		return new Dimension(w, h);  
 	}
 
 	/**
@@ -409,8 +380,16 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	 * Calculates the ideal zoom factor to make the image fit into the JLabel
 	 * @return the ideal zoom factor based off of the image
 	 */
-	public double getPreferredScale(){
+	protected double getPreferredScale(){
 		return getPreferredScale(image);
+	}
+	
+	/**
+	 * Calculates the current zoom factor (eg. X0.5, X2, X3, X4...)
+	 * @return the current zoom factor as a double.
+	 */
+	public double getZoomFactor(){
+		return getScale()/getPreferredScale();
 	}
 
 	/**
@@ -418,7 +397,7 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 	 * @param The image to calculate the preferred scale from
 	 * @return The preferred scale or negative 1 the image is null.
 	 */
-	public double getPreferredScale(BufferedImage image){
+	protected double getPreferredScale(BufferedImage image){
 		if(image == null){
 			return -1;
 		}
@@ -443,6 +422,39 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 			scale *= w/(double)iw;
 		}
 		return scale;
+	}
+
+	/**
+	 * Converts an image to a BufferedImage
+	 * @param The image to extract the BufferedIMage
+	 * @return The extracted BufferedImage
+	 */
+	private static BufferedImage convertToBufferedImage(Image image){
+		if(image instanceof sun.awt.image.ToolkitImage){
+			return ((sun.awt.image.ToolkitImage) image).getBufferedImage();
+		}
+		else if(image instanceof Image){
+			return (BufferedImage)image;
+		}
+		else{
+			return null;
+		}
+	}
+
+	/**
+	 * Extracts a BufferedImage from an Icon
+	 * @param icon The icon to extract the image from
+	 * @return The extracted BufferedImage
+	 */
+	private static BufferedImage extractImageFromIcon(Icon icon){
+		if(icon == null || !(icon instanceof ImageIcon)){
+			return null;
+		}
+		Image image = (Image)((ImageIcon)icon).getImage();
+		if(image == null){
+			return null;
+		}
+		return convertToBufferedImage(image);
 	}
 }
 
