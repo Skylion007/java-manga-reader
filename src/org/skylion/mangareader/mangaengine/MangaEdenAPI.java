@@ -55,9 +55,9 @@ public class MangaEdenAPI implements MangaEngine{
 
 	@Override
 	public void setCurrentURL(String url) {
-		System.out.println("setCurrentURl" + url);
 		if(url.contains("www.mangaeden.com/api/manga/")){
 			this.currentManga = url;
+			this.currentChapter = 0;
 			refreshLists();
 		}
 		else if(url.contains("www.mangaeden.com/api/chapter")){
@@ -69,7 +69,8 @@ public class MangaEdenAPI implements MangaEngine{
 				System.out.println("HELP");
 				return;
 			}
-		} else if(url.contains("cdn.mangaeden.com/mangasimg/")){
+		} 
+		else if(url.contains("cdn.mangaeden.com/mangasimg/")){
 			int pageIndex = StringUtil.indexOf(pageURLs, url);
 			if(pageIndex!=-1){
 				this.currentPage = pageIndex;
@@ -90,7 +91,6 @@ public class MangaEdenAPI implements MangaEngine{
 				}	
 			}
 		}
-
 	}
 
 	@Override
