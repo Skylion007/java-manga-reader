@@ -7,6 +7,7 @@ Format:  Tag: `<Corresponding Tag>`
 * Version 0.8
 	* Zooming added!
 	* API updated.
+	* Support for MangaEden added.
 * Version 0.7
 	* Updated GUI
 	* Speed optimizations
