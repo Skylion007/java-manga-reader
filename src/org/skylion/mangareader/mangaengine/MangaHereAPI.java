@@ -3,6 +3,7 @@ package org.skylion.mangareader.mangaengine;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -238,29 +239,58 @@ public class MangaHereAPI implements MangaEngine{
 	}
 
 	/**
-	 * Gets Text from URL
-	 * @param input
+	 * Generates the URL from the name of the manga by comparing it with local databases.
+	 * @param mangaName The name of the Manga you want to search for.
 	 */
-	public String getMangaURL(String input){
+	public String getMangaURL(String mangaName){
 		String mangaURL = "";
-		input = StringUtil.removeTrailingWhiteSpaces(input);
+		mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
 		try {
-			for(int i = 0; i<mangaList[0].length; i++){
+			boolean found = false;
+			for(int i = 0;!found && i<mangaList[0].length; i++){
 				String name = mangaList[0][i];
-				if(input.equalsIgnoreCase(name)){
+				if(mangaName.equalsIgnoreCase(name)){
 					mangaURL = mangaList[1][i]; 
-					break;
+					found = true;
 				}
+			}
+			if(!found){
+				mangaURL = searchForManga(mangaName);
 			}
 			mangaURL = getFirstChapter(mangaURL);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			input = StringUtil.removeTrailingWhiteSpaces(input);
-			mangaURL = mangaNameToURL(input);
+			mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
+			mangaURL = mangaNameToURL(mangaName);
 			mangaURL = MANGA_HERE_URL + mangaURL;
 		}
 		return mangaURL;
+	}
+
+	/**
+	 * Searches for the manga name and returns the URL.
+	 * @param searchTerm The name of the Manga
+	 * @return The URL 
+	 * @throws IOException if something goes wrong
+	 */
+	private String searchForManga(String searchTerm) throws IOException{
+		String url = "http://www.mangahere.com/search.php";
+		String encoded = URLEncoder.encode(searchTerm, "UTF-8");
+		url += "?name=" + encoded;
+		Document doc = Jsoup.connect(url).timeout(5000).get();
+		Elements results = doc.getElementsByClass("result_search").first().children();
+		results.remove(results.last());//Removes useless link from footer
+		for(Element e: results){
+			String text = e.children().last().text();
+			text = text.substring(text.indexOf(':')+1);
+			String[] names = text.split(";");
+			for(String s: names){
+				if(s.substring(1).equalsIgnoreCase(searchTerm)){
+					return e.select("a").first().absUrl("href");
+				}
+			}
+		}
+		return "";
 	}
 
 	/**
