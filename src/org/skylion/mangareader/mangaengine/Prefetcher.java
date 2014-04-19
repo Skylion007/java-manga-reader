@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JProgressBar;
@@ -141,7 +142,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 	}
 
 	@Override
-	public BufferedImage loadImg(String url) throws Exception {
+	public BufferedImage loadImg(String url) throws IOException {
 		if(url == null){
 			return null;
 		}
@@ -159,7 +160,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 	}
 	
 	@Override
-	public BufferedImage getImage(String url) throws Exception {
+	public BufferedImage getImage(String url) throws IOException {
 		return mangaEngine.getImage(url);
 	}
 

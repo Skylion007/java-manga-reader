@@ -2,6 +2,7 @@ package org.skylion.mangareader.mangaengine;
 
 import java.awt.image.BufferedImage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +40,7 @@ public class MangaEdenAPI implements MangaEngine{
 
 	private final static String MANGA_EDEN_URL = "https://www.mangaeden.com/api/";
 
-	public MangaEdenAPI() throws Exception {
+	public MangaEdenAPI() throws IOException {
 		currentManga = this.getMangaURL("Mirai Nikki");
 		chapterURLs = this.initializeChapterList();
 		currentChapter = 0;
@@ -83,7 +84,7 @@ public class MangaEdenAPI implements MangaEngine{
 						this.currentPage = 0;
 					}
 					refreshLists();
-				} catch (Exception e) {
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}	
@@ -92,7 +93,7 @@ public class MangaEdenAPI implements MangaEngine{
 	}
 
 	@Override
-	public BufferedImage loadImg(String url) throws Exception {
+	public BufferedImage loadImg(String url) throws IOException {
 		if(url.contains("manga")){
 			setCurrentURL(url);
 			refreshLists();
@@ -104,7 +105,7 @@ public class MangaEdenAPI implements MangaEngine{
 	}
 
 	@Override
-	public BufferedImage getImage(String url) throws Exception {
+	public BufferedImage getImage(String url) throws IOException {
 		if(url.contains("chapter")){
 			url = this.getPageURLs(url)[0];
 		}
@@ -118,7 +119,7 @@ public class MangaEdenAPI implements MangaEngine{
 		} else if(currentChapter+1 < chapterURLs.length){
 			try {
 				return this.getPageURLs(this.chapterURLs[currentChapter+1])[0];
-			} catch (Exception e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 				return this.currentManga;
 			}
@@ -157,7 +158,7 @@ public class MangaEdenAPI implements MangaEngine{
 	public String getMangaName() {
 		try {
 			return getNameFromChapter(currentManga);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -186,7 +187,7 @@ public class MangaEdenAPI implements MangaEngine{
 				out[chapters.length-1-i] = tmp.substring(tmp.lastIndexOf(' '));
 			}
 			return out;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			return null;
 		}
 
@@ -220,34 +221,28 @@ public class MangaEdenAPI implements MangaEngine{
 	 * @return The initialized manga list.
 	 */
 	private static String[][] initializeMangaList(){
-		try {
-			String raw = multiPageFetch(25);
-			String[] manga = raw.split("\\},");
-			String[][] mangaProps = new String[manga.length][7];
-			for(int i = 0; i<manga.length; i++){
-				mangaProps[i]=manga[i].split(",\n");
-			}
-			String[][] out = new String[mangaProps.length][2];
-			for(int i = 0; i<mangaProps.length; i++){
-				out[i][0] = extractValue(mangaProps[i][mangaProps[i].length-1]);//Always last value
-				if(mangaProps[i].length<7){//Performs manual search if a value is missing or out of order.
-					for(int x = 0; x<mangaProps[i].length; x++){
-						if(mangaProps[i][x].contains("\"i\"")){
-							out[i][1] = extractValue(mangaProps[i][x]);
-						}
+		String raw = multiPageFetch(25);
+		String[] manga = raw.split("\\},");
+		String[][] mangaProps = new String[manga.length][7];
+		for(int i = 0; i<manga.length; i++){
+			mangaProps[i]=manga[i].split(",\n");
+		}
+		String[][] out = new String[mangaProps.length][2];
+		for(int i = 0; i<mangaProps.length; i++){
+			out[i][0] = extractValue(mangaProps[i][mangaProps[i].length-1]);//Always last value
+			if(mangaProps[i].length<7){//Performs manual search if a value is missing or out of order.
+				for(int x = 0; x<mangaProps[i].length; x++){
+					if(mangaProps[i][x].contains("\"i\"")){
+						out[i][1] = extractValue(mangaProps[i][x]);
 					}
 				}
-				else{
-					out[i][1] = extractValue(mangaProps[i][2]);
-				}
-				out[i][1] = generateMangaURL(out[i][1]);//Generates the URL from the ID
 			}
-			return out;
+			else{
+				out[i][1] = extractValue(mangaProps[i][2]);
+			}
+			out[i][1] = generateMangaURL(out[i][1]);//Generates the URL from the ID
 		}
-		catch(Exception e){
-			e.printStackTrace();
-			return initializeMangaList();//This must complete or the program can NEVER instationate
-		}
+		return out;
 	}
 
 	private static String multiPageFetch(int pages){
@@ -284,7 +279,7 @@ public class MangaEdenAPI implements MangaEngine{
 		}
 		
 		@Override
-		public String call() throws Exception{
+		public String call() throws IOException{
 			String url = BASE_URL + "?p=" + page;
 			String raw = StringUtil.urlToText(url);
 			raw = raw.substring(raw.indexOf("  \"manga\": [")+"  \"manga\": [".length()+1, 
@@ -295,11 +290,11 @@ public class MangaEdenAPI implements MangaEngine{
 		
 	}
 	
-	private String[] initializeChapterList() throws Exception{
+	private String[] initializeChapterList() throws IOException{
 		return getChapterURLs(this.currentManga);
 	}
 
-	private String[] getChapterURLs(String mangaURL) throws Exception{
+	private String[] getChapterURLs(String mangaURL) throws IOException{
 		String raw = StringUtil.urlToText(mangaURL);
 		raw = raw.substring(raw.indexOf("\"chapters\": [")+13);//Removes unnecessary information
 		raw = raw.substring(0, raw.indexOf("],\n  \""));//End of Chapter Section
@@ -314,11 +309,11 @@ public class MangaEdenAPI implements MangaEngine{
 		return out;
 	}
 
-	private String[] initializePageList() throws Exception{
+	private String[] initializePageList() throws IOException{
 		return getPageURLs(this.chapterURLs[this.currentChapter]);
 	}
 
-	private String[] getPageURLs(String chapterURL) throws Exception{
+	private String[] getPageURLs(String chapterURL) throws IOException{
 		String raw = StringUtil.urlToText(chapterURL);
 		return parsePageList(raw);
 	}
@@ -375,7 +370,7 @@ public class MangaEdenAPI implements MangaEngine{
 		return input;
 	}
 
-	public String getNameFromChapter(String mangaURL) throws Exception{
+	public String getNameFromChapter(String mangaURL) throws IOException{
 		String raw = StringUtil.urlToText(mangaURL);
 		raw = raw.substring(raw.indexOf("\"title\": ")+ 10);
 		raw = raw.substring(0,raw.indexOf('"'));
@@ -390,7 +385,7 @@ public class MangaEdenAPI implements MangaEngine{
 				this.chapterURLs = this.initializeChapterList();
 				this.pageURLs = this.initializePageList();
 				break;
-			} catch (Exception e) {
+			} catch (IOException e) {
 				if(attempts == 2){
 					e.printStackTrace();
 				}

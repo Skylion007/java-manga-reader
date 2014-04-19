@@ -81,10 +81,10 @@ public class MangaPandaAPI implements MangaEngine{
 	 * See getImage for simple image grabbing.
 	 */
 	@Override
-	public BufferedImage loadImg(String url) throws Exception {
+	public BufferedImage loadImg(String url) throws IOException {
 		if(url==null || url.equals("")){
 			System.out.println(url);
-			throw new Exception("INVALID PARAMETER");
+			throw new IOException("INVALID PARAMETER");
 		}
 		//Detects whether it is loading a new Manga 
 		boolean hasMangaChanged = !getMangaName(currentURL).equals(getMangaName(url));
@@ -232,7 +232,7 @@ public class MangaPandaAPI implements MangaEngine{
 			}
 			mangaURL = getFirstChapter(mangaURL);
 		
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.out.println(mangaURL);
@@ -244,9 +244,9 @@ public class MangaPandaAPI implements MangaEngine{
 	 * Gets the first chapter listed on the MangaURL
 	 * @param mangaURL The URL of the manga 
 	 * @return The URL of the first chapter of the manga
-	 * @throws Exception If cannot complete request
+	 * @throws IOException If cannot complete request
 	 */
-	private String getFirstChapter(String mangaURL) throws Exception{
+	private String getFirstChapter(String mangaURL) throws IOException{
 		Document doc = Jsoup.connect(mangaURL).get();
 		Element list = doc.getElementById("listing");
 		Elements names = list.select("a");
@@ -453,7 +453,7 @@ public class MangaPandaAPI implements MangaEngine{
 			out = StringUtil.formatChapterNames(out);
 			return out;
 		}
-		catch(Exception ex){
+		catch(IOException ex){
 			ex.printStackTrace();
 			return null;
 		}

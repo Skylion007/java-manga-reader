@@ -1,6 +1,7 @@
 package org.skylion.mangareader.mangaengine;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -13,8 +14,8 @@ public interface MangaEngine {
 
 	public String getCurrentURL();
 	public void setCurrentURL(String url);
-	public BufferedImage loadImg(String url)throws Exception;
-	public BufferedImage getImage(String url) throws Exception;
+	public BufferedImage loadImg(String url) throws IOException;
+	public BufferedImage getImage(String url) throws IOException;
 	
 	
 	public String getNextPage();

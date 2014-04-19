@@ -35,9 +35,9 @@ public class MangaHereAPI implements MangaEngine{
 	
 	/**
 	 * Constructor
-	 * @throws Exception if cannot connect to website
+	 * @throws IOException if cannot connect to website
 	 */
-	public MangaHereAPI() throws Exception {
+	public MangaHereAPI() throws IOException {
 		// TODO Auto-generated constructor stub
 		this("http://www.mangahere.com/manga/mirai_nikki/v00/c000/");//Default Manga
 	}
@@ -45,9 +45,9 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * Constructor
 	 * @param URL The URL of the page you wish to start at.
-	 * @throws Exception if cannot contact website.
+	 * @throws IOException if cannot contact website.
 	 */
-	public MangaHereAPI(String URL) throws Exception {
+	public MangaHereAPI(String URL) throws IOException {
 		mangaList = initalizeMangaList();
 		currentURL = URL;
 		refreshLists();
@@ -90,12 +90,12 @@ public class MangaHereAPI implements MangaEngine{
 	 * Returns a StretchIconHQ of the page found on the specified URL.
 	 * @param url the url you want to grab the page from
 	 * @return the image as a StretchIconHQ
-	 * @throws Exception if URL is invalid
+	 * @throws IOException if URL is invalid
 	 */
-	public BufferedImage loadImg(String url) throws Exception{
+	public BufferedImage loadImg(String url) throws IOException{
 		if(url==null || url.equals("")){
 			System.out.println(url);
-			throw new Exception("INVALID PARAMETER");
+			throw new IOException("INVALID PARAMETER");
 		}
 		//Detects whether it is loading a new Manga 
 		boolean hasMangaChanged = !getMangaName(currentURL).equals(getMangaName(url));
@@ -109,7 +109,7 @@ public class MangaHereAPI implements MangaEngine{
 	}
 
 
-	public BufferedImage getImage(String URL) throws Exception{
+	public BufferedImage getImage(String URL) throws IOException{
 		if(URL == null || URL.equals("")){ return null;}
 		Document doc = Jsoup.connect(URL).timeout(5*1000).get();
 		Element e = doc.getElementById("image");
@@ -190,7 +190,7 @@ public class MangaHereAPI implements MangaEngine{
 			}
 			return backPage;
 		}
-		catch(Exception ex){
+		catch(IOException ex){
 			ex.printStackTrace();
 		}
 		return null;
@@ -258,7 +258,7 @@ public class MangaHereAPI implements MangaEngine{
 				mangaURL = searchForManga(mangaName);
 			}
 			mangaURL = getFirstChapter(mangaURL);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
 			mangaURL = mangaNameToURL(mangaName);
@@ -387,7 +387,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * Determines whether a Manga is licensed and is not shown on MangaHere
 	 * @param mangaURL The URL you are checking, should be base URL.
 	 * @return True if liscensed, false otherwise
-	 * @throws Exception if cannot complete request
+	 * @throws IOException if cannot complete request
 	 */
 	public boolean isMangaLicensed(String mangaURL) throws IOException{
 		Document doc;
@@ -403,7 +403,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * Gets a list of all Manga and the corresponding URL
 	 * @return A 2D array containing the name and URL of each Manga on the site
 	 */
-	private String[][] initalizeMangaList() throws Exception{
+	private String[][] initalizeMangaList() throws IOException{
 		String[][] out;
 		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").timeout(10*1000).maxBodySize(0).get();
 		Elements items = doc.getElementsByClass("manga_info");
@@ -484,7 +484,7 @@ public class MangaHereAPI implements MangaEngine{
 				pages.add(item.attr("value"));
 			}
 		}
-		catch(Exception ex){
+		catch(IOException ex){
 			ex.printStackTrace();
 		}
 		String[] out = new String[pages.size()];
