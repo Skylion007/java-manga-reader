@@ -194,27 +194,6 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 				}
 			}
 			
-			/**
-			 * Determines if the value + the x value will be valid
-			 * @param x The value you want to pan to.
-			 * @return True if valid else false;
-			 */
-			private boolean isXValid(double x){
-				BufferedImage image = getImage();
-				double xImageCenter = getX() + image.getWidth()/2;
-				return x+xImageCenter>=image.getMinX() && x+xImageCenter<=image.getWidth();
-			}
-			
-			/**
-			 * Determines if the value + the y value will be valid
-			 * @param y The value you want to pan to.
-			 * @return True if valid else false;
-			 */
-			private boolean isYValid(double y){
-				BufferedImage image = getImage();
-				double yImageCenter = getY() + image.getHeight()/2;
-				return y+yImageCenter>=image.getMinY() && y+yImageCenter<=image.getHeight();
-			}
 		});
 		this.addMouseWheelListener(new MouseAdapter(){//This listener zooms using mouse wheel
 			@Override
@@ -227,8 +206,11 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 				double dy = me.getY() - getHeight()/2;
 				dx/=getZoomFactor();
 				dy/=getZoomFactor();
+				if(!isXValid(x-dx) || !isYValid(y-dx)){
+					return;
+				}
 				x-=dx;
-				y-=dy;				
+				y-=dy;
 				try {//Makes the origin reset only happen once.
 					Robot bot = new Robot();
 					Point loc = getLocationOnScreen();
@@ -250,6 +232,29 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 
 	}
 
+	/**
+	 * Determines if the value + the x value will be valid
+	 * @param x The value you want to pan to.
+	 * @return True if valid else false;
+	 */
+	private boolean isXValid(double x){
+		BufferedImage image = getImage();
+		double xImageCenter = getX() + image.getWidth()/2;
+		return x+xImageCenter>=image.getMinX() && x+xImageCenter<=image.getWidth();
+	}
+	
+	/**
+	 * Determines if the value + the y value will be valid
+	 * @param y The value you want to pan to.
+	 * @return True if valid else false;
+	 */
+	private boolean isYValid(double y){
+		BufferedImage image = getImage();
+		double yImageCenter = getY() + image.getHeight()/2;
+		return y+yImageCenter>=image.getMinY() && y+yImageCenter<=image.getHeight();
+	}
+
+	
 	@Override
 	protected void paintComponent(Graphics g){  
 		if(image == null){//Does nothing special if no image is specified
