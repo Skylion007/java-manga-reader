@@ -186,6 +186,7 @@ public class MangaEdenAPI implements MangaEngine{
 				String tmp = chapters[i].substring(0, chapters[i].indexOf(','));
 				out[chapters.length-1-i] = tmp.substring(tmp.lastIndexOf(' '));
 			}
+			StringUtil.formatChapterNames(out);
 			return out;
 		} catch (IOException e) {
 			return null;
