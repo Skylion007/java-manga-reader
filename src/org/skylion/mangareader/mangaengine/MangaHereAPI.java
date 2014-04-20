@@ -121,24 +121,14 @@ public class MangaHereAPI implements MangaEngine{
 	 * Fetches the URL for the next Page as defined by links within the current page.
 	 */
 	public String getNextPage(){
-		Document doc;
-		try {
-			doc = Jsoup.connect(currentURL).get();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return null;
+		String[] pages = this.getPageList();
+		int index = StringUtil.indexOf(pages, currentURL);
+		if(index + 1 == pages.length){
+			return getNextChapter();
 		}
-		Element e = doc.getElementById("viewer");
-		e = e.child(0);//gets the child which contains the URL
-		String nextURL = e.absUrl("href");
-		//Special Case: End of Chapter
-		if(e== null || nextURL == null || nextURL.equals("") || nextURL.equals("javascript:void(0)")
-				|| nextURL.contains("void")){
-			//System.out.println("Next Chapter");
-			nextURL = getNextChapter(doc);
+		else{
+			return pages[index + 1];
 		}
-		return nextURL;
 	}
 
 	/**
@@ -422,30 +412,29 @@ public class MangaHereAPI implements MangaEngine{
 	 * @return An array of current chapter URLs
 	 */
 	private String[] intializeChapterList(){
-		//System.out.println(getMangaName());
-		String mangaURL = getBaseURL();
-		Document doc;
-		List<String> chaptersList = new ArrayList<String>();
-		try {
-			doc = Jsoup.connect(mangaURL).timeout(10*1000).get();
-			Element e = doc.getElementsByClass("detail_list").last();
-			Elements items = e.select("li");
-			items = items.select("a");
-			String[] names = new String[items.size()];
-			for(int i = 0; i<names.length; i++){
-				names[names.length-1-i] = items.get(i).absUrl("href");//Orders Chapter urls correctly
+		try{
+			String linkPage = StringUtil.urlToText(currentURL);
+			String url = "http://www.mangahere.com/get_chapters" + parseSeriesID(linkPage) 
+					+ ".js?v=306";
+			String page = StringUtil.urlToText(url);
+			page = page.substring(page.indexOf("Array(")+6);
+			page = page.substring(0,page.indexOf(");"));
+			page = page.substring(1,page.length()-1);
+			String[] array = page.split("\\],\n  \\[");
+			String name = parseSeriesName(linkPage);
+			for(int i = 0; i<array.length; i++){
+				String s = array[i];
+				s = StringUtil.stripQuotes(s);
+				s = s.substring(s.indexOf("http"));
+				s = s.replace("\"+series_name+\"", name);
+				array[i] = s;
 			}
-			return names;
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			return array;
+		}
+		catch(Exception e){
 			e.printStackTrace();
 		}
-		String[] out = new String[chaptersList.size()];
-		for(int i=chaptersList.size()-1; i>=0 ; i--){
-			out[out.length-1-i] = chaptersList.get(i);
-		}
-		return out;
+		return null;
 	}	
 	
 	/**
@@ -453,22 +442,34 @@ public class MangaHereAPI implements MangaEngine{
 	 * @return The current chapter name.
 	 */
 	private String[] initializeChapterNames(){
-		String mangaURL = MANGA_HERE_URL + getMangaName().replace(' ', '_')+'/';
-		try {
-			Document doc = Jsoup.connect(mangaURL).timeout(10*1000).get();
-			Element e = doc.getElementsByClass("detail_list").last();
-			Elements items = e.select("li");
-			items = items.select("a");
-			String[] names = new String[items.size()];
-			for(int i = 0; i<names.length; i++){
-				names[names.length-1-i] = items.get(i).text();//Orders Chapter Names correctly
+		try{
+			String linkPage = StringUtil.urlToText(currentURL);
+			String url = "http://www.mangahere.com/get_chapters"+ parseSeriesID(linkPage) 
+					+ ".js?v=306";
+			String page = StringUtil.urlToText(url);
+			page = page.substring(page.indexOf("Array(")+6);
+			page = page.substring(0,page.indexOf(");"));
+			page = page.substring(1,page.length()-1);
+			String[] array = page.split("\\],\n  \\[");
+			for(int i = 0; i<array.length; i++){
+				String s = array[i];
+				s = StringUtil.stripQuotes(s);
+				if(s.indexOf(':')!=-1){
+					s = s.substring(0, s.indexOf(':'));
+				}
+				if(s.indexOf('"')!=-1){
+					s = s.substring(0, s.indexOf('"'));
+				}
+				s = s.substring(s.lastIndexOf(' ') + 1);				
+				s = StringUtil.formatChapterNames(s);
+				array[i] = s;
 			}
-			return names = StringUtil.formatChapterNames(names);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			return array;
 		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	/**
@@ -490,6 +491,18 @@ public class MangaHereAPI implements MangaEngine{
 		String[] out = new String[pages.size()];
 		pages.toArray(out);
 		return out;
+	}
+
+	private String parseSeriesName(String page){
+		page = page.substring(page.indexOf("series_name = \"")+15);
+		page = page.substring(0, page.indexOf('"'));
+		return page;
+	}
+
+	private String parseSeriesID(String page){
+		page = page.substring(page.indexOf("series_id")+10);
+		page = page.substring(0, page.indexOf('&'));
+		return page;
 	}
 
 	/**
@@ -519,14 +532,6 @@ public class MangaHereAPI implements MangaEngine{
 			
 		}
 		return name;
-	}
-
-	/**
-	 * Infers the base URL of the manga (mangaURL) from the currentURL
-	 * @return The inferred base URL
-	 */
-	private String getBaseURL(){
-		return MANGA_HERE_URL + getMangaName().toLowerCase().replace(' ', '_')+'/';
 	}
 	
 	/**
