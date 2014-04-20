@@ -195,6 +195,7 @@ public class MangaEdenAPI implements MangaEngine{
 
 	@Override
 	public String getMangaURL(String mangaName) {
+		mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
 		for(int i = 0; i<mangaList.length; i++){
 			if(mangaList[i][0].equalsIgnoreCase(mangaName)){
 				System.out.println("Manga#: " + i);
