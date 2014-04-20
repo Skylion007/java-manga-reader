@@ -131,6 +131,9 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 		this.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent me){
+				if(getImage()==null){
+					return;
+				}
 				if(SwingUtilities.isRightMouseButton(me)){//Zooms in and out
 					if(!isZoomed){
 						setScale(scale*1.5);
@@ -172,7 +175,8 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 		this.addMouseMotionListener(new MouseAdapter(){//This listener handles panning.
 			@Override
 			public void mouseDragged(MouseEvent me){
-				if(scale!=getPreferredScale() && SwingUtilities.isLeftMouseButton(me)){
+				if(scale!=getPreferredScale() && SwingUtilities.isLeftMouseButton(me) 
+						&& getImage()!=null){
 					setDoubleBuffered(false);
 					
 					//Calculates motion + acceleration
@@ -198,6 +202,9 @@ implements MenuContainer, Serializable, SwingConstants {//Applicable interfaces
 		this.addMouseWheelListener(new MouseAdapter(){//This listener zooms using mouse wheel
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent me){
+				if(getImage() == null){
+					return;
+				}
 				double scaleChange = me.getWheelRotation()/100d;
 				if(!(getZoomFactor()<=.25 && scaleChange<0)){
 					setScale(getScale() + scaleChange);

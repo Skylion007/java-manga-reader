@@ -20,6 +20,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
@@ -85,6 +86,10 @@ public class MainGUI extends JFrame {
 	private ImagePanel page; //That page currently displayed
 	private boolean fullScreen = false;//Is in Fullscreen?
 	
+	private static final String instructions = "<html><center>" +
+			"<p><font size =\"32\">Just type the name of the manga you wish to read in the search bar above."+
+			" Use the dropdown menus to navigate between different manga sources, chapters," +
+			" and pages.<font size =\"32\"></p>" + "</html></center>";
 	
 	private JPanel pageUI;
 	
@@ -135,27 +140,42 @@ public class MainGUI extends JFrame {
 		mangaSelect.setEditable(true);
 		mangaSelect.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				disableNavigation(false);
 				loadPage(mangaEngine.getMangaURL(mangaSelect.getText()));
 				refreshLists();
 			}
 		});
-	
-		int attempts = 0;
-		while(attempts<3){
-			try{
-				mangaEngineMap.put("MangaReader", new MangaReaderAPI());
-				mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
-				mangaEngineMap.put("MangaHere", new MangaHereAPI());
-				mangaEngineMap.put("MangaEden", new MangaEdenAPI());
-				break;
-			}
-			catch(Exception ex){
-				Toolkit.getDefaultToolkit().beep();
-				ex.printStackTrace();
-			}
-		}
 		
-		mangaEngine = new Prefetcher(this, mangaEngineMap.get("MangaHere"));
+		try {
+			mangaEngine = new Prefetcher(this, new MangaHereAPI());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		mangaEngineMap.put("MangaHere", mangaEngine);
+		new Thread(new Runnable(){
+			public void run(){
+				int attempts = 0;
+				while(attempts<3){
+					try{
+						mangaEngineMap.put("MangaReader", new MangaReaderAPI());
+						mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
+						mangaEngineMap.put("MangaEden", new MangaEdenAPI());
+						break;
+					}
+					catch(Exception ex){
+						Toolkit.getDefaultToolkit().beep();
+						ex.printStackTrace();
+					}
+				}
+				final JComboBox<String> box = engineSel;
+				for(String s: mangaEngineMap.keySet()){
+					if(!s.equals("MangaHere")){
+						box.addItem(s);
+					}
+				}
+			}
+		}).start();
 		
 		//Wraps the TextField with my custom autosuggestion box
 		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList(), 
@@ -169,10 +189,8 @@ public class MainGUI extends JFrame {
 		page.setFont(next.getFont().deriveFont(72f));
 		page.setDoubleBuffered(true);
 		//User Welcome Screen!
-		page.setText("<html><center><p> Welcome to Janga!</p> <h1>A Java Manga Reading Application</h1>" +
-				"<p><font size =\"32\">Just type the name of the manga you wish to read in the search bar above."+
-				" Use the dropdown menus to navigate between different manga sources, chapters," +
-				" and pages.<font size =\"32\"></p>" +
+		page.setText("<html><center><p> Welcome to Janga!</p> " +
+				"<h1>A Java Manga Reading Application</h1>" + instructions + 
 				"<p>Enjoy!</p></center>");
 	
 		////////////////////////////////////////
@@ -233,7 +251,9 @@ public class MainGUI extends JFrame {
 							((Closeable) mangaEngine).close();
 						}
 						mangaEngine = new Prefetcher(MainGUI.this, mangaEngineMap.get(engineName));
-						loadPage(mangaEngine.loadImg(mangaEngine.getCurrentURL()));
+						loadPage((BufferedImage)null);
+						page.setText(instructions + "</center></html>");
+						disableNavigation(true);
 						refreshLists();
 						autoSelect.setDictionary(mangaEngine.getMangaList());//Resets the list
 					} catch (Exception e) {
@@ -335,6 +355,8 @@ public class MainGUI extends JFrame {
 //		    	}
 //		    }
 //		});
+
+		disableNavigation(true);
 		initKeyboard();
 	}
 			
@@ -346,7 +368,9 @@ public class MainGUI extends JFrame {
 			private static final long serialVersionUID = -3381019543157339629L;
 
 			public void actionPerformed(ActionEvent e) {
-				next.doClick();
+				if(pageSel.isEnabled()){
+					next.doClick();
+				}
 			}
 		};
 
@@ -357,7 +381,9 @@ public class MainGUI extends JFrame {
 			private static final long serialVersionUID = 1148536792558547221L;
 
 			public void actionPerformed(ActionEvent e) {
-				previous.doClick();
+				if(pageSel.isEnabled()){
+					previous.doClick();
+				}
 			}
 		};
 		
@@ -574,6 +600,13 @@ public class MainGUI extends JFrame {
 		return new JComboBox<String>(out);
 	}
 	
+	private void disableNavigation(boolean disabled){
+		boolean enabled = !disabled;
+		pageSel.setEnabled(enabled);
+		chapterSel.setEnabled(enabled);
+		next.setVisible(enabled);
+		previous.setVisible(enabled);
+	}
 	
 	/**
 	 * Updates the ComboBoxes for chapters and pages

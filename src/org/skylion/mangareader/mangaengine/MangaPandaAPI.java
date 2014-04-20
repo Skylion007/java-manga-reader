@@ -115,6 +115,11 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	@Override
 	public String getNextPage() {
+		String[] pages = this.getPageList();
+		int index = StringUtil.indexOf(pages, currentURL);
+		if(index + 1 < pages.length){
+			return pages[index + 1];
+		}
 		try {
 			Document doc = Jsoup.connect(currentURL).get();
 			Element navi = doc.getElementById("navi");
