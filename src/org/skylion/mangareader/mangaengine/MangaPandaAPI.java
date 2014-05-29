@@ -4,15 +4,14 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
 import javax.imageio.ImageIO;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.skylion.mangareader.mangaengine.MangaEngine;
+import org.skylion.mangareader.util.Logger;
 import org.skylion.mangareader.util.StringUtil;
 
 /**
@@ -103,6 +102,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 * @return The BufferedImage of the page of the URL
 	 * @throws IOException If URL is not valid or unable to complete request
 	 */
+	@Override
 	public BufferedImage getImage(String URL) throws IOException{
 		Document doc = Jsoup.connect(URL).timeout(5*1000).get();
 		Element e = doc.getElementById("img");
@@ -127,8 +127,7 @@ public class MangaPandaAPI implements MangaEngine{
 			html = html.substring(html.indexOf('"')+2, html.lastIndexOf('"'));
 			return MANGA_PANDA_URL + html;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return null;
 		}	
 	}
@@ -145,8 +144,7 @@ public class MangaPandaAPI implements MangaEngine{
 			html = html.substring(html.indexOf('"')+2, html.lastIndexOf('"'));
 			return MANGA_PANDA_URL + html;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return null;
 		}	
 	}
@@ -160,26 +158,24 @@ public class MangaPandaAPI implements MangaEngine{
 			Document doc = Jsoup.connect(url).get();
 			return !doc.text().contains("404 Not Found");
 		}
-		catch(IOException ex){
-			ex.printStackTrace();
+		catch(IOException e){
+			Logger.log(e);
 			return false;
 		}
 	}
 
 	/**
-	 * Returns a list of all manga on site for selector
+	 * Returns a list of all manga on site for selector.
 	 */
 	@Override
 	public List<String> getMangaList() {
 		List<String> names = new ArrayList<String>(mangaList[0].length);
-		for(int i = 0; i<mangaList[0].length; i++){
-			names.add(mangaList[0][i]);
-		}
+		names.addAll(Arrays.asList(mangaList[0]));
 		return names;
 	}
 	
 	/**
-	 * Generates the name of the manga from the current URL
+	 * Generates the name of the manga from the current URL.
 	 */
 	@Override
 	public String getMangaName(){
@@ -187,7 +183,7 @@ public class MangaPandaAPI implements MangaEngine{
 	}
 
 	/**
-	 * Generates the name of the manga from the URL
+	 * Generates the name of the manga from the URL.
 	 */
 	private String getMangaName(String URL) {
 		String name = URL.substring(0,URL.lastIndexOf("/"));
@@ -205,7 +201,7 @@ public class MangaPandaAPI implements MangaEngine{
 
 
 	/**
-	 * Returns the list of chapters from current manga
+	 * Returns the list of chapters from current manga.
 	 */
 	@Override
 	public String[] getChapterList(){
@@ -213,7 +209,7 @@ public class MangaPandaAPI implements MangaEngine{
 	}
 	
 	/**
-	 * Returns the list of pages from current manga
+	 * Returns the list of pages from current manga.
 	 */
 	@Override
 	public String[] getPageList(){
@@ -238,8 +234,7 @@ public class MangaPandaAPI implements MangaEngine{
 			mangaURL = getFirstChapter(mangaURL);
 		
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			System.out.println(mangaURL);
 		}
 		return mangaURL;
@@ -307,16 +302,15 @@ public class MangaPandaAPI implements MangaEngine{
 			for(Element miniList: bigList){
 				 names.addAll(miniList.select("li"));
 			}
-			String[][] mangaList = new String[2][names.size()];
+			String[][] localMangaList = new String[2][names.size()];
 			for(int i = 0; i<names.size(); i++){
 				Element e = names.get(i).select("a").first();
-				mangaList[0][i] = e.text().replace("[Completed]","");
-				mangaList[1][i] = e.absUrl("href");
+				localMangaList[0][i] = e.text().replace("[Completed]","");
+				localMangaList[1][i] = e.absUrl("href");
 			}
-			return mangaList;
+			return localMangaList;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return null;
 		}
 		
@@ -379,10 +373,7 @@ public class MangaPandaAPI implements MangaEngine{
 				return false;
 			}
 		}
-		if(!input.contains("-")){//To prevent page/chapter num from false positives
-			return false;
-		}
-		return true;
+		return input.contains("-"); // To prevent page/chapter num from false positives
 	}
 	
 	/**
@@ -408,8 +399,7 @@ public class MangaPandaAPI implements MangaEngine{
 			}
 			return out;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 		}
 		return null;
 	}
@@ -421,7 +411,7 @@ public class MangaPandaAPI implements MangaEngine{
 	 */
 	private String[] initializeChapterList() {
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
-		try{
+		try {
 			List<String> outList = new ArrayList<String>();
 			Document doc = Jsoup.connect(baseURL).timeout(10*1000).maxBodySize(0).get();
 			Element list = doc.getElementById("listing");
@@ -433,20 +423,20 @@ public class MangaPandaAPI implements MangaEngine{
 			String[] out = new String[outList.size()];
 			outList.toArray(out);
 			return out;
-		}
-		catch(IOException e){
-			e.printStackTrace();
+		} catch(IOException e){
+			Logger.log(e);
 			return null;
 		}
 	}
 	
+	@Override
 	public String[] getChapterNames(){
 		return chapterNames;
 	}
 	
 	public String[] initializeChapterNames() {
 		String baseURL = MANGA_PANDA_URL + getMangaName().replace(' ', '-');
-		try{
+		try {
 			Document doc = Jsoup.connect(baseURL).timeout(10*1000).maxBodySize(0).get();
 			Element list = doc.getElementById("listing");
 			Elements names = list.select("tr");
@@ -457,9 +447,8 @@ public class MangaPandaAPI implements MangaEngine{
 			}
 			out = StringUtil.formatChapterNames(out);
 			return out;
-		}
-		catch(IOException ex){
-			ex.printStackTrace();
+		} catch(IOException e) {
+			Logger.log(e);
 			return null;
 		}
 

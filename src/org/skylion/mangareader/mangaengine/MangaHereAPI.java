@@ -5,20 +5,21 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
 import javax.imageio.ImageIO;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.skylion.mangareader.util.Logger;
 import org.skylion.mangareader.util.StringUtil;
 
 /**
  * An unofficial API for MangaHere.com. This is API is not affiliated in any way with
  * MangaHere. The developers of this program are in now way responsible for any content provided on
  * the website. Moreover, since the API is unofficial it may be subject to breakage.
+ * 
  * @author Skylion (Aaron Gokaslan)
  */
 public class MangaHereAPI implements MangaEngine{
@@ -56,6 +57,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * @return the currentURL
 	 */
+	@Override
 	public String getCurrentURL() {
 		return currentURL;
 	}
@@ -63,6 +65,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * @param currentURL the currentURL to set
 	 */
+	@Override
 	public void setCurrentURL(String currentURL) {
 		this.currentURL = currentURL;
 	}
@@ -70,6 +73,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * @return The name of the manga parsed from the current URL
 	 */
+	@Override
 	public String getMangaName(){
 		return getMangaName(currentURL);
 	}
@@ -92,6 +96,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * @return the image as a StretchIconHQ
 	 * @throws IOException if URL is invalid
 	 */
+	@Override
 	public BufferedImage loadImg(String url) throws IOException{
 		if(url==null || url.equals("")){
 			System.out.println(url);
@@ -109,6 +114,7 @@ public class MangaHereAPI implements MangaEngine{
 	}
 
 
+	@Override
 	public BufferedImage getImage(String URL) throws IOException{
 		if(URL == null || URL.equals("")){ return null;}
 		Document doc = Jsoup.connect(URL).timeout(5*1000).get();
@@ -120,6 +126,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * Fetches the URL for the next Page as defined by links within the current page.
 	 */
+	@Override
 	public String getNextPage(){
 		String[] pages = this.getPageList();
 		int index = StringUtil.indexOf(pages, currentURL);
@@ -139,10 +146,8 @@ public class MangaHereAPI implements MangaEngine{
 		try {
 			return getNextChapter(Jsoup.connect(currentURL).get());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return null;
-			
 		}
 	}
 	
@@ -150,7 +155,7 @@ public class MangaHereAPI implements MangaEngine{
 		Elements exs = doc.getElementsByClass("reader_tip").first().children();
 		Element ex = exs.get(exs.size()-2);
 		String extract = ex.html();//Element is not properly closed. Manually parsing required
-		if(extract.indexOf("href=\"")==-1){//First Chapter: Special Case
+		if(!extract.contains("href=\"")){//First Chapter: Special Case
 			ex = exs.get(exs.size()-1);
 			extract = ex.html();
 		}
@@ -167,21 +172,21 @@ public class MangaHereAPI implements MangaEngine{
 	 * If at page 0 chapter 1, goes to Chapter 2.
 	 * If at page 0 of chapter #>2 goes to previous chapter page 1.
 	 */
+	@Override
 	public String getPreviousPage(){
 		Document doc;
-		try{
+		try {
 			doc = Jsoup.connect(currentURL).get();
 			Element e = doc.getElementsByClass("prew_page").first();
 			String backPage = e.absUrl("href");
 			//Special Case: Beginning of Chapter
-			if(e== null || backPage == null || backPage.equals("") || backPage.equals("javascript:void(0)")){
+			if(backPage == null || backPage.equals("") || backPage.equals("javascript:void(0)")){
 				//System.out.println("Previous Chapter");
 				backPage = getPreviousChapter(doc);
 			}
 			return backPage;
-		}
-		catch(IOException ex){
-			ex.printStackTrace();
+		} catch(IOException e){
+			Logger.log(e);
 		}
 		return null;
 	}
@@ -194,8 +199,7 @@ public class MangaHereAPI implements MangaEngine{
 		try {
 			return getPreviousChapter(Jsoup.connect(currentURL).get());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return null;
 		}
 	}
@@ -220,11 +224,10 @@ public class MangaHereAPI implements MangaEngine{
 	 * Generates a list of all available manga on the site
 	 * @return the list as a List<String>
 	 */
+	@Override
 	public List<String> getMangaList(){	
 		List<String> names = new ArrayList<String>(mangaList[0].length);
-		for(int i = 0; i<mangaList[0].length; i++){
-			names.add(mangaList[0][i]);
-		}
+		names.addAll(Arrays.asList(mangaList[0]));
 		return names;
 	}
 
@@ -232,6 +235,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * Generates the URL from the name of the manga by comparing it with local databases.
 	 * @param mangaName The name of the Manga you want to search for.
 	 */
+	@Override
 	public String getMangaURL(String mangaName){
 		String mangaURL = "";
 		mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
@@ -249,7 +253,7 @@ public class MangaHereAPI implements MangaEngine{
 			}
 			mangaURL = getFirstChapter(mangaURL);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.log(e);
 			mangaName = StringUtil.removeTrailingWhiteSpaces(mangaName);
 			mangaURL = mangaNameToURL(mangaName);
 			mangaURL = MANGA_HERE_URL + mangaURL;
@@ -300,11 +304,11 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * Returns the current page number
 	 */
+	@Override
 	public int getCurrentPageNum(){
 		if(currentURL.charAt(currentURL.length()-1)=='/'){
 			return 1;
-		}
-		else{
+		} else {
 			String page = currentURL.substring(currentURL.lastIndexOf('/')+1,currentURL.lastIndexOf('.'));
 			return Integer.parseInt(page);
 		}
@@ -313,6 +317,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * Returns the current chapter number
 	 */
+	@Override
 	public int getCurrentChapNum(){
 		return (int)getChapNum(currentURL);
 	}
@@ -334,6 +339,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * @return an array of PageURLs
 	 */
+	@Override
 	public String[] getPageList(){
 		return pageURLs;
 	}
@@ -341,6 +347,7 @@ public class MangaHereAPI implements MangaEngine{
 	/**
 	 * @return an array of Chapter Urls
 	 */
+	@Override
 	public String[] getChapterList(){
 		return chapterURLs;
 	}
@@ -349,6 +356,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * Generates a list of Chapter names
 	 * @return the chapter name.
 	 */
+	@Override
 	public String[] getChapterNames(){
 		return chapterNames;
 	}
@@ -358,6 +366,7 @@ public class MangaHereAPI implements MangaEngine{
 	 * @param url The URL you want
 	 * @return true if it is valid. False, otherwise.
 	 */
+	@Override
 	public boolean isValidPage(String url){
 		Document doc;
 		try {
@@ -367,8 +376,7 @@ public class MangaHereAPI implements MangaEngine{
 					|| this.isMangaLicensed(url));
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(e);
 			return false;
 		}
 	}
@@ -430,9 +438,8 @@ public class MangaHereAPI implements MangaEngine{
 				array[i] = s;
 			}
 			return array;
-		}
-		catch(Exception e){
-			e.printStackTrace();
+		} catch(IOException e) {
+			Logger.log(e);
 		}
 		return null;
 	}	
@@ -466,8 +473,8 @@ public class MangaHereAPI implements MangaEngine{
 			}
 			return array;
 		}
-		catch(Exception e){
-			e.printStackTrace();
+		catch(IOException e){
+			Logger.log(e);
 		}
 		return null;
 	}
@@ -478,15 +485,14 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	private String[] initalizePageList(){
 		List<String> pages = new ArrayList<String>();
-		try{
+		try {
 			Document doc = Jsoup.connect(currentURL).get();
 			Element list = doc.getElementsByClass("wid60").first();
 			for(Element item: list.children()){
 				pages.add(item.attr("value"));
 			}
-		}
-		catch(IOException ex){
-			ex.printStackTrace();
+		} catch(IOException e){
+			Logger.log(e);
 		}
 		String[] out = new String[pages.size()];
 		pages.toArray(out);
@@ -522,10 +528,9 @@ public class MangaHereAPI implements MangaEngine{
 		for(int i = 0; i<name.length(); i++){
 			char x = name.charAt(i);
 			if(!Character.isLetter(x) && x != '_' && !Character.isDigit(x)){
-				if(i-1>=0 && i+1>=name.length() && name.charAt(i-1) == '_' && name.charAt(i+1) == '_'){
+				if(i-1>=0 && i+1>=name.length() && name.charAt(i-1) == '_' && name.charAt(i+1) == '_') {
 					name = name.replace(""+x, "");
-				}
-				else{
+				} else {
 					name = name.replace(x,'_');
 				}
 			}

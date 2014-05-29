@@ -17,10 +17,9 @@ public interface MangaEngine {
 	public BufferedImage loadImg(String url) throws IOException;
 	public BufferedImage getImage(String url) throws IOException;
 	
-	
 	public String getNextPage();
 	public String getPreviousPage();
-
+	
 	public boolean isValidPage(String url);
 	
 	public List<String> getMangaList();
@@ -35,5 +34,4 @@ public interface MangaEngine {
 	
 	public int getCurrentPageNum();
 	public int getCurrentChapNum();
-
 }
