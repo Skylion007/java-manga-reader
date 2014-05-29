@@ -32,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -45,6 +46,7 @@ import org.skylion.mangareader.mangaengine.Prefetcher;
 import org.skylion.mangareader.util.AutoSuggestor;
 import org.skylion.mangareader.util.ImagePanel;
 import org.skylion.mangareader.util.Logger;
+import org.skylion.mangareader.util.StringUtil;
 
 
 
@@ -149,36 +151,94 @@ public class MainGUI extends JFrame {
 			}
 		});
 		
-		try {
-			mangaEngine = new Prefetcher(this, new MangaHereAPI());
-		} catch (IOException e) {
-			Logger.log(e);
-		}
-		mangaEngineMap.put("MangaHere", mangaEngine);
+		//Loads MangaEngines in a separate Thread to reduce start up time
+		engineSel = new JComboBox<String>();
 		new Thread(new Runnable(){
+			private boolean engineLoadingFailed = false;
+			
 			@Override
 			public void run(){
-				int attempts = 0;
-				while(attempts<3){
-					try{
-						mangaEngineMap.put("MangaReader", new MangaReaderAPI());
-						mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
-						mangaEngineMap.put("MangaEden", new MangaEdenAPI());
-						break;
-					}
-					catch(IOException e){
-						Toolkit.getDefaultToolkit().beep();
-						Logger.log(e);
+				final JComboBox<String> box = engineSel;
+				
+				try {
+					mangaEngineMap.put("MangaHere", new MangaHereAPI());
+				} catch (IOException ex) {
+					catcher(ex);
+				}
+								
+				try {
+					mangaEngineMap.put("MangaReader", new MangaReaderAPI());
+				} catch(Exception ex){
+					catcher(ex);
+				}
+
+				try {
+					mangaEngineMap.put("MangaPanda", new MangaPandaAPI());
+				} catch(Exception ex){
+					catcher(ex);
+				}
+
+				try {
+					mangaEngineMap.put("MangaEden", new MangaEdenAPI());
+				} catch(IOException ex){
+					catcher(ex);
+				}
+
+				String[] keys = new String[box.getItemCount()];
+				for(int i=0; i<keys.length; i++){
+					keys[i] = box.getItemAt(i);
+				}
+			
+				//Adds newly found Manga Engine
+				for(String key: mangaEngineMap.keySet()){
+					if(!contains(keys, key)){
+						box.addItem(key);
 					}
 				}
-				final JComboBox<String> box = engineSel;
-				for(String s: mangaEngineMap.keySet()){
-					if(!s.equals("MangaHere")){
-						box.addItem(s);
-					}
+				
+				if(engineLoadingFailed){
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							JOptionPane.showMessageDialog(MainGUI.this, "ERROR", 
+								"Some MangaEngine could not be loaded", JOptionPane.ERROR_MESSAGE);
+						}
+					});
 				}
 			}
+			
+			private boolean contains(Object[] objects, Object target){
+				for(Object o: objects){
+					if(target.equals(o)){
+						return true;
+					}
+				}
+				return false;
+			}
+			
+			private void catcher(Exception e){
+				Toolkit.getDefaultToolkit().beep();
+				Logger.log(e);
+				engineLoadingFailed = true;
+			}
 		}).start();
+		
+		//Loads the first Manga Engine that loads succesfully
+		while(engineSel.getModel().getSize() == 0){
+			try {
+				if(mangaEngineMap.keySet().isEmpty()){
+					Thread.sleep(100);
+				} else {
+					String first = mangaEngineMap.keySet().toArray()[0].toString();
+					engineSel.addItem(first);
+					engineSel.setSelectedItem(first);
+					mangaEngine = new Prefetcher(this, mangaEngineMap.get(first));
+				}
+			} catch (InterruptedException e) {
+				System.exit(ABORT);
+			}
+		}
+
 		
 		//Wraps the TextField with my custom autosuggestion box
 		autoSelect = new AutoSuggestor(mangaSelect, this, mangaEngine.getMangaList(), 
@@ -199,7 +259,8 @@ public class MainGUI extends JFrame {
 		////////////////////////////////////////
 		//Constructs components in the toolbar//
 		////////////////////////////////////////
-		chapterSel = new JComboBox<String>(mangaEngine.getChapterNames());
+		chapterSel = new JComboBox<String>(StringUtil.formatChapterNames(
+				mangaEngine.getChapterNames()));
 		chapterSel.setToolTipText("Chapter Navigation");
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
 			@Override
@@ -239,11 +300,6 @@ public class MainGUI extends JFrame {
 		});
 		
 		//Initializes mangaEngineSel
-		engineSel = new JComboBox<String>();
-		for(String s: mangaEngineMap.keySet()){
-			engineSel.addItem(s);
-		}
-		engineSel.setSelectedItem("MangaHere");
 		engineSel.setToolTipText("Manga Source Selection");
 		engineSel.addActionListener(new java.awt.event.ActionListener() {
 			@Override
@@ -438,14 +494,10 @@ public class MainGUI extends JFrame {
 		//Loads Bindings into JFrame
 		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "NEXT");
-		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-		.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, false), "NEXT");
 		this.getRootPane().getActionMap().put("NEXT", nextPageAction);
 
 		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "PREV");
-		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-		.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, false), "PREV");
 		this.getRootPane().getActionMap().put("PREV", previousPageAction);
 		
 		//Loads Keyboard Commands
