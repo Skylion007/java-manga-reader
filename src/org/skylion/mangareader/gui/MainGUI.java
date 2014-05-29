@@ -10,8 +10,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -23,7 +23,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -37,14 +36,15 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-
 import org.skylion.mangareader.mangaengine.MangaEdenAPI;
 import org.skylion.mangareader.mangaengine.MangaEngine;
 import org.skylion.mangareader.mangaengine.MangaHereAPI;
 import org.skylion.mangareader.mangaengine.MangaPandaAPI;
 import org.skylion.mangareader.mangaengine.MangaReaderAPI;
 import org.skylion.mangareader.mangaengine.Prefetcher;
-import org.skylion.mangareader.util.*;
+import org.skylion.mangareader.util.AutoSuggestor;
+import org.skylion.mangareader.util.ImagePanel;
+import org.skylion.mangareader.util.Logger;
 
 
 
@@ -124,6 +124,7 @@ public class MainGUI extends JFrame {
 
 		previous = new JButton("Previous Page");
 		previous.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				loadPage(mangaEngine.getPreviousPage());
 			}
@@ -131,6 +132,7 @@ public class MainGUI extends JFrame {
 						   
 		next = new JButton("Next Page");
 		next.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt){
 				loadPage(mangaEngine.getNextPage());
 			}
@@ -139,6 +141,7 @@ public class MainGUI extends JFrame {
 		mangaSelect = new JTextField("Type your manga into here");
 		mangaSelect.setEditable(true);
 		mangaSelect.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				disableNavigation(false);
 				loadPage(mangaEngine.getMangaURL(mangaSelect.getText()));
@@ -148,12 +151,12 @@ public class MainGUI extends JFrame {
 		
 		try {
 			mangaEngine = new Prefetcher(this, new MangaHereAPI());
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (IOException e) {
+			Logger.log(e);
 		}
 		mangaEngineMap.put("MangaHere", mangaEngine);
 		new Thread(new Runnable(){
+			@Override
 			public void run(){
 				int attempts = 0;
 				while(attempts<3){
@@ -163,9 +166,9 @@ public class MainGUI extends JFrame {
 						mangaEngineMap.put("MangaEden", new MangaEdenAPI());
 						break;
 					}
-					catch(Exception ex){
+					catch(IOException e){
 						Toolkit.getDefaultToolkit().beep();
-						ex.printStackTrace();
+						Logger.log(e);
 					}
 				}
 				final JComboBox<String> box = engineSel;
@@ -199,6 +202,7 @@ public class MainGUI extends JFrame {
 		chapterSel = new JComboBox<String>(mangaEngine.getChapterNames());
 		chapterSel.setToolTipText("Chapter Navigation");
 		chapterSel.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				if (evt.getModifiers() != 0 && evt.getSource() instanceof JComboBox
 						 && ((JComboBox<?>)evt.getSource()).isPopupVisible()){
@@ -208,9 +212,8 @@ public class MainGUI extends JFrame {
 						refreshLists();
 						autoSelect.setDictionary(mangaEngine.getMangaList());
 						updateStatus();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (IOException e) {
+						Logger.log(e);
 					}
 				}
 			}
@@ -219,6 +222,7 @@ public class MainGUI extends JFrame {
 		pageSel = generateComboBox("Pg: ", mangaEngine.getPageList().length);
 		pageSel.setToolTipText("Page Navigation");
 		pageSel.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				//Checks if it wasn't programmatically fired.
 				if (evt.getModifiers() != 0 && evt.getSource() instanceof JComboBox
@@ -227,9 +231,8 @@ public class MainGUI extends JFrame {
 					try {
 						loadPage(mangaEngine.loadImg(mangaEngine.getPageList()[index]));
 						updateStatus();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (IOException e) {
+						Logger.log(e);
 					}
 				}
 			}
@@ -243,6 +246,7 @@ public class MainGUI extends JFrame {
 		engineSel.setSelectedItem("MangaHere");
 		engineSel.setToolTipText("Manga Source Selection");
 		engineSel.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				if (evt.getModifiers() != 0) {//Checks if it wasn't programmatically fired.
 					String engineName = (String)engineSel.getSelectedItem();
@@ -256,9 +260,8 @@ public class MainGUI extends JFrame {
 						disableNavigation(true);
 						refreshLists();
 						autoSelect.setDictionary(mangaEngine.getMangaList());//Resets the list
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (IOException e) {
+						Logger.log(e);
 					}
 				}
 			}
@@ -269,33 +272,36 @@ public class MainGUI extends JFrame {
 		toggleFullScreen.setForeground(Color.WHITE);
 		toggleFullScreen.setBackground(Color.MAGENTA.darker().darker());
 		toggleFullScreen.addActionListener(new java.awt.event.ActionListener() {
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
 				setFullScreen(!isFullScreen());
 			}
 		});
 		
-//		toolbarLock = new JToggleButton("T");
-//		toolbarLock.setToolTipText("Locks toolbar");
-//		toolbarLock.setFont(next.getFont());
-//		toolbarLock.setForeground(Color.WHITE);
-//		toolbarLock.setBackground(Color.LIGHT_GRAY);
-//		toggleFullScreen.addActionListener(new java.awt.event.ActionListener() {
-//			public void actionPerformed(java.awt.event.ActionEvent evt) {
-//				
-//			}
-//		});
+		/*
+  		toolbarLock = new JToggleButton("T");
+  		toolbarLock.setToolTipText("Locks toolbar");
+  		toolbarLock.setFont(next.getFont());
+  		toolbarLock.setForeground(Color.WHITE);
+  		toolbarLock.setBackground(Color.LIGHT_GRAY);
+  		toggleFullScreen.addActionListener(new java.awt.event.ActionListener() {
+  			public void actionPerformed(java.awt.event.ActionEvent evt) {
+  				
+  			}
+  		});
+		*/
 		
 		//Instantionates and sets up asthetics for toolbar
-		toolbar = new JPanel(){
+		toolbar = new JPanel() {
 			/**
 			 * Default Generated Serial UID
 			 */
 			private static final long serialVersionUID = -2560322159063958032L;
 
 			@Override
-			protected void paintComponent(Graphics grphcs) {//Adds a gradient to the JPanel
-				super.paintComponent(grphcs);
-				Graphics2D g2d = (Graphics2D) grphcs;
+			protected void paintComponent(Graphics graphics) { // Adds a gradient to the JPanel
+				super.paintComponent(graphics);
+				Graphics2D g2d = (Graphics2D) graphics;
 				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 						RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -335,27 +341,29 @@ public class MainGUI extends JFrame {
 		
 		//toolbar.setBackground(toolbar.getParent().getBackground());
 		
-		//Experimental auto-hide functionality
-//		final JToggleButton lockToolbar = new JToggleButton("V");
-//		lockToolbar.setSelected(true);
-//		lockToolbar.setForeground(Color.WHITE);
-//		lockToolbar.setBackground(Color.GREEN.darker());
-//		lockToolbar.setFont(next.getFont());
-//		toolbar.add(lockToolbar);
-//		pane.addMouseMotionListener(new MouseAdapter() {
-//		    public void mouseMoved (MouseEvent me) {
-//		        boolean was = toolbar.isVisible();
-//		    	if (!was && toolbar.getBounds().contains(me.getPoint())) {//If mouseOver
-//					toolbar.setVisible(true);
-//		        } else if(!lockToolbar.isSelected()){
-//		            toolbar.setVisible(false);
-//		        }
-//		    	if(was != toolbar.isVisible()){
-//		    		revalidate();
-//		    	}
-//		    }
-//		});
-
+		/*
+		// Experimental auto-hide functionality
+  		final JToggleButton lockToolbar = new JToggleButton("V");
+  		lockToolbar.setSelected(true);
+  		lockToolbar.setForeground(Color.WHITE);
+  		lockToolbar.setBackground(Color.GREEN.darker());
+  		lockToolbar.setFont(next.getFont());
+  		toolbar.add(lockToolbar);
+  		pane.addMouseMotionListener(new MouseAdapter() {
+  		    public void mouseMoved (MouseEvent me) {
+  		        boolean was = toolbar.isVisible();
+  		    	if (!was && toolbar.getBounds().contains(me.getPoint())) {//If mouseOver
+  					toolbar.setVisible(true);
+  		        } else if(!lockToolbar.isSelected()){
+  		            toolbar.setVisible(false);
+  		        }
+  		    	if(was != toolbar.isVisible()){
+  		    		revalidate();
+  		    	}
+  		    }
+  		});
+		*/
+		
 		disableNavigation(true);
 		initKeyboard();
 	}
@@ -367,6 +375,7 @@ public class MainGUI extends JFrame {
 			 */
 			private static final long serialVersionUID = -3381019543157339629L;
 
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(pageSel.isEnabled()){
 					next.doClick();
@@ -380,6 +389,7 @@ public class MainGUI extends JFrame {
 			 */
 			private static final long serialVersionUID = 1148536792558547221L;
 
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(pageSel.isEnabled()){
 					previous.doClick();
@@ -393,6 +403,7 @@ public class MainGUI extends JFrame {
 			 */
 			private static final long serialVersionUID = 1148566792558547221L;
 
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				toolbar.setVisible(!toolbar.isVisible());
 			}
@@ -404,6 +415,7 @@ public class MainGUI extends JFrame {
 			 */
 			private static final long serialVersionUID = 1148566792585247221L;
 
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				setFullScreen(!isFullScreen());
 			}
@@ -415,6 +427,7 @@ public class MainGUI extends JFrame {
 			 */
 			private static final long serialVersionUID = 1148563792585247221L;
 
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isFullScreen()){
 					setFullScreen(false);
@@ -494,7 +507,7 @@ public class MainGUI extends JFrame {
 			this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 			try{
 				dev.setFullScreenWindow(this);//Makes it full screen
-				if(System.getProperty("os.name").indexOf("Mac OS X") >= 0){
+				if(System.getProperty("os.name").contains("Mac OS X")){
 					this.setVisible(false);
 					this.setVisible(true);
 					this.addMouseListener(macWorkAround);
@@ -511,6 +524,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	private final MouseAdapter macWorkAround = new MouseAdapter(){
+		@Override
 		public void mouseClicked(MouseEvent e){
 			MainGUI.this.setVisible(false);
 			MainGUI.this.setVisible(true);
@@ -521,21 +535,23 @@ public class MainGUI extends JFrame {
 		return fullScreen;
 	}
 	
-	//Alternatefullscreen
-//	@Override
-//	public void setExtendedState(int state){
-//		if(state == JFrame.MAXIMIZED_BOTH){
-//			this.dispose();
-//			this.setUndecorated(true);
-//			this.setVisible(true);
-//		}
-//		else{
-//			this.dispose();
-//			this.setUndecorated(false);
-//			this.setVisible(true);
-//		}
-//		super.setExtendedState(state);
-//	}
+	/*
+	// Alternate fullscreen
+  	@Override
+  	public void setExtendedState(int state){
+  		if(state == JFrame.MAXIMIZED_BOTH){
+  			this.dispose();
+  			this.setUndecorated(true);
+  			this.setVisible(true);
+  		}
+  		else{
+  			this.dispose();
+  			this.setUndecorated(false);
+  			this.setVisible(true);
+  		}
+  		super.setExtendedState(state);
+  	}
+	*/
 	
 	/**
 	 * Loads the page of the Manga specified by the URL
@@ -552,10 +568,11 @@ public class MainGUI extends JFrame {
 			page.setText(null);
 			updateStatus();
 			return;
-		} catch (Exception e) {
-			e.printStackTrace();
-			if(e instanceof SocketTimeoutException){
-				//Do nothing allow reattempt
+		} catch (IOException e) {
+			Logger.log(e);
+			if(e instanceof SocketTimeoutException) {
+				// Do nothing allow reattempt.
+				// This doesn't do nothing...
 			}
 			page.loadImage(null);
 			page.setText("<html><p><center>An error has occured :(</p>" +
@@ -624,9 +641,9 @@ public class MainGUI extends JFrame {
 	
 	private void updateStatus(){
 		String chapter = "Ch: " + mangaEngine.getCurrentChapNum();
-		String page = "Pg: " + mangaEngine.getCurrentPageNum();
+		String currentPage = "Pg: " + mangaEngine.getCurrentPageNum();
 		chapterSel.getModel().setSelectedItem(chapter);//Work around to forcefully change combobox
-		pageSel.getModel().setSelectedItem(page);
+		pageSel.getModel().setSelectedItem(currentPage);
 	}
 
 }

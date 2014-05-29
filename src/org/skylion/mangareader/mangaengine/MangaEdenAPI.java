@@ -1,7 +1,6 @@
 package org.skylion.mangareader.mangaengine;
 
 import java.awt.image.BufferedImage;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,10 +13,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import javax.imageio.ImageIO;
-
-import org.skylion.mangareader.mangaengine.MangaEngine;
+import org.skylion.mangareader.util.Logger;
 import org.skylion.mangareader.util.StringUtil;
 
 
@@ -59,22 +56,18 @@ public class MangaEdenAPI implements MangaEngine{
 			this.currentManga = url;
 			this.currentChapter = 0;
 			refreshLists();
-		}
-		else if(url.contains("www.mangaeden.com/api/chapter")){
+		} else if(url.contains("www.mangaeden.com/api/chapter")){
 			int chapterIndex = StringUtil.indexOf(chapterURLs, url);
 			if(chapterIndex!=-1){
 				this.currentChapter = chapterIndex;
 				this.currentPage = 0;
 				refreshLists();
-				return;
 			}
-		} 
-		else if(url.contains("cdn.mangaeden.com/mangasimg/")){
+		} else if(url.contains("cdn.mangaeden.com/mangasimg/")){
 			int pageIndex = StringUtil.indexOf(pageURLs, url);
-			if(pageIndex!=-1){
+			if(pageIndex!=-1) {
 				this.currentPage = pageIndex;
-			}
-			else{
+			} else {
 				String[] pages;
 				try {
 					pages = this.getPageURLs(chapterURLs[this.currentChapter+1]);
@@ -85,8 +78,7 @@ public class MangaEdenAPI implements MangaEngine{
 					}
 					refreshLists();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Logger.log(e);
 				}	
 			}
 		}
@@ -120,11 +112,11 @@ public class MangaEdenAPI implements MangaEngine{
 			try {
 				return this.getPageURLs(this.chapterURLs[currentChapter+1])[0];
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.log(e);
 				return this.currentManga;
 			}
 		}
-		else{
+		else {
 			return this.pageURLs[this.currentPage];
 		}
 	}

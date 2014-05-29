@@ -2,16 +2,15 @@ package org.skylion.mangareader.mangaengine;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
+import org.skylion.mangareader.util.Logger;
 
 /**
  * A class that wraps a MangaEngine and prefetches from it to improve speed.
@@ -60,11 +59,11 @@ public class Prefetcher implements MangaEngine, Closeable{
 		task = new Task();
 		task.addPropertyChangeListener(new PropertyChangeListener(){
 		    /**
-		     * Invoked when task's progress property changes.
+		     * Invoked when a task's progress property changes.
 		     */
 		    @Override
 			public void propertyChange(PropertyChangeEvent evt) {//Updates Progressbar
-		        if ("progress" == evt.getPropertyName() ) {
+		        if ("progress".equals(evt.getPropertyName()) ) {
 		            int progress = (Integer) evt.getNewValue();
 		            parent.repaint();
 		            progressBar.setValue(progress);
@@ -120,9 +119,8 @@ public class Prefetcher implements MangaEngine, Closeable{
 					icon = mangaEngine.loadImg(mangaEngine.getNextPage());
 				}
 				return icon;
-			} catch (Exception e) {			
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (IOException e) {			
+				Logger.log(e);
 				return null;
 			}
 		}
@@ -143,16 +141,14 @@ public class Prefetcher implements MangaEngine, Closeable{
 
 	@Override
 	public BufferedImage loadImg(String url) throws IOException {
-		if(url == null){
+		if(url == null) {
 			return null;
-		}
-		if(isCached(url)){
+		} if(isCached(url)) {
 			mangaEngine.setCurrentURL(url);
 			return fetch(url);
-		}
-		else{
+		} else {
 			BufferedImage out = mangaEngine.loadImg(url);
-			if(!isFetched(url)){
+			if(!isFetched(url)) {
 				prefetch();
 			}
 			return out;
@@ -230,7 +226,7 @@ public class Prefetcher implements MangaEngine, Closeable{
 	}
 	
 	@Override
-	public String[] getChapterNames(){
+	public String[] getChapterNames() {
 		return mangaEngine.getChapterNames();
 	}
 
@@ -260,14 +256,13 @@ public class Prefetcher implements MangaEngine, Closeable{
 			for(int i = 0; i<pageURLs.length && !this.isCancelled(); i++){
 				int attemptNum = 0;
 				while(attemptNum <=3){//Retries three times to load the image.
-					try{		
+					try {		
 						pages[i] = mangaEngine.getImage(pageURLs[i]);//Loads image
 						progressBar.setValue(i);//Updates progressbar
 						progressBar.setString("Loading Page: " + (i+1) + " of " + progressBar.getMaximum());
 						break;
-					}	
-					catch(Exception ex){
-						ex.printStackTrace();
+					} catch(IOException e){
+						Logger.log(e);
 						attemptNum++;
 					}
 				}
@@ -280,9 +275,9 @@ public class Prefetcher implements MangaEngine, Closeable{
 		 */
 		@Override
 		public void done() {
-			super.done();//Cleans up
-			parent.remove(progressBar);//Removes progressbar
-			parent.revalidate();//Refreshes JFrame
+			super.done(); //Cleans up
+			parent.remove(progressBar); //Removes progressbar
+			parent.revalidate(); //Refreshes JFrame
 			parent.repaint();
 		}
 
