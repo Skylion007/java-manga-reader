@@ -23,6 +23,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -44,6 +46,7 @@ import org.skylion.mangareader.mangaengine.MangaPandaAPI;
 import org.skylion.mangareader.mangaengine.MangaReaderAPI;
 import org.skylion.mangareader.mangaengine.Prefetcher;
 import org.skylion.mangareader.util.AutoSuggestor;
+import org.skylion.mangareader.util.HashMapComboBoxModel;
 import org.skylion.mangareader.util.ImagePanel;
 import org.skylion.mangareader.util.Logger;
 import org.skylion.mangareader.util.StringUtil;
@@ -103,7 +106,7 @@ public class MainGUI extends JFrame {
 	/**
 	 * Used to store different Manga Engines
 	 */
-	private HashMap<String, MangaEngine> mangaEngineMap = new HashMap<String, MangaEngine>();
+	private LinkedHashMap<String, MangaEngine> mangaEngineMap = new LinkedHashMap<String, MangaEngine>();
 	
 	/**
 	 * The Engine used to fetch content from the Manga Website. In this case MangaHere
@@ -152,13 +155,13 @@ public class MainGUI extends JFrame {
 		});
 		
 		//Loads MangaEngines in a separate Thread to reduce start up time
-		engineSel = new JComboBox<String>();
+		engineSel = new JComboBox<String>(
+				new HashMapComboBoxModel<String, MangaEngine>(mangaEngineMap));
 		new Thread(new Runnable(){
 			private boolean engineLoadingFailed = false;
 			
 			@Override
 			public void run(){
-				final JComboBox<String> box = engineSel;
 				
 				try {
 					mangaEngineMap.put("MangaHere", new MangaHereAPI());
@@ -183,18 +186,6 @@ public class MainGUI extends JFrame {
 				} catch(IOException ex){
 					catcher(ex);
 				}
-
-				String[] keys = new String[box.getItemCount()];
-				for(int i=0; i<keys.length; i++){
-					keys[i] = box.getItemAt(i);
-				}
-			
-				//Adds newly found Manga Engine
-				for(String key: mangaEngineMap.keySet()){
-					if(!contains(keys, key)){
-						box.addItem(key);
-					}
-				}
 				
 				if(engineLoadingFailed){
 					SwingUtilities.invokeLater(new Runnable(){
@@ -206,16 +197,7 @@ public class MainGUI extends JFrame {
 					});
 				}
 			}
-			
-			private boolean contains(Object[] objects, Object target){
-				for(Object o: objects){
-					if(target.equals(o)){
-						return true;
-					}
-				}
-				return false;
-			}
-			
+						
 			private void catcher(Exception e){
 				Toolkit.getDefaultToolkit().beep();
 				Logger.log(e);
@@ -224,13 +206,12 @@ public class MainGUI extends JFrame {
 		}).start();
 		
 		//Loads the first Manga Engine that loads succesfully
-		while(engineSel.getModel().getSize() == 0){
+		while(mangaEngine == null){
 			try {
 				if(mangaEngineMap.keySet().isEmpty()){
 					Thread.sleep(100);
 				} else {
 					String first = mangaEngineMap.keySet().toArray()[0].toString();
-					engineSel.addItem(first);
 					engineSel.setSelectedItem(first);
 					mangaEngine = new Prefetcher(this, mangaEngineMap.get(first));
 				}
