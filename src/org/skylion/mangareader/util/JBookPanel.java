@@ -37,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -136,6 +137,12 @@ public class JBookPanel extends JComponent
 	
 	protected Image[] pages;
 
+	protected boolean proportionate = true;
+	
+	protected boolean rightToLeft;
+	
+	protected double hScale = .75, wScale = hScale;
+	
 	/**
 	 * Constructor
 	 */
@@ -147,20 +154,25 @@ public class JBookPanel extends JComponent
 		setMargins(70, 80);
 	}
 
-	//Personalized Constructor!
-	public JBookPanel(String[] URLs, MangaEngine mangaEngine){
+	public JBookPanel(String[] URLs, MangaEngine mangaEngine) throws IOException{
 		super();
 		init();
 		this.mangaEngine = mangaEngine;
 		loadPages(URLs, true, true);
-		setPages(null, null, null,
-			13, 210, 342);
-		this.nrOfPages = URLs.length;
 		setMargins(70, 80);
 	}
-
 	
-	public JBookPanel(StretchIconHQ[] icons){
+	public JBookPanel(Image[] images, boolean doublePages, boolean rightToLeft){
+		this();
+		setPages(null, null, null, 13, 210, 342);
+		pages = generatePages(images, doublePages, rightToLeft);
+		this.nrOfPages = pages.length - 1;
+		setMargins(70, 80);
+		scaleBook();
+		refreshPages();
+	}
+	
+	public JBookPanel(ImageIcon[] icons){
 		super();
 		init();
 		pages = new Image[icons.length];
@@ -173,49 +185,93 @@ public class JBookPanel extends JComponent
 	}
 
 	//Loads the pages as such.
-	public void loadPages(String[] URLs, boolean doublePages, boolean leftToRight){
+	private void loadPages(String[] URLs, boolean doublePages, boolean rightToLeft) throws IOException{
 		pages = null;
-		if(leftToRight){
+		this.rightToLeft = rightToLeft;
+		if(rightToLeft){
 			URLs = this.reverseArray(URLs);
 		}
-		this.nrOfPages = URLs.length;
-		List<Image> tmp = new ArrayList<Image>(URLs.length);	
+		Image[] images = new Image[URLs.length];
 		for(int i = 0; i<URLs.length; i++){
-			try {
-				BufferedImage img = mangaEngine.getImage(URLs[i]);
+				BufferedImage img;
+				try {
+					img = mangaEngine.getImage(URLs[i]);
+				} catch (Exception e) {
+					img = null;
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				if(img == null){
-					throw new Exception("Unable to load an image at index " + i  + ".");
+					throw new IOException("Unable to load an image at index " + i  + ".");
 				}
-				if(doublePages && this.isLandscape(img)){
-					boolean blankPageNeeded = (i>=0 && (i-1)%2 == 1);
-					if(blankPageNeeded){
-						tmp.add(this.getBlankPage(img.getWidth(),img.getHeight()));
-					}
-					BufferedImage imgLeft = img.getSubimage(0, 0, img.getWidth()/2, img.getHeight());
-					BufferedImage imgRight = img.getSubimage(img.getWidth()/2,0,img.getWidth()/2,img.getHeight());
-					tmp.add(imgLeft);
-					tmp.add(imgRight);
-				}
-				else{
-					tmp.add(img);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				images[i] = img;
 		}
-		tmp.removeAll(Collections.singleton(null));//Removes null entries
-		pageWidth = ((BufferedImage)tmp.get(0)).getWidth();//Sets PageWidth
-		pages = new Image[tmp.size()];//Transforms to array
-		tmp.toArray(pages);
-		this.nrOfPages = pages.length + 3;
-		if(leftToRight){
-			leftPageIndex = pages.length - 3;//Needs to be minus 7 for pages to load properly.
+		pages = generatePages(images, doublePages, false);//Manga would have already been reversed
+		pageWidth = getIdealPageWidth(images);//Sets PageWidth
+		scaleBook();
+		this.nrOfPages = pages.length+3;
+		if(rightToLeft){
+			leftPageIndex = pages.length-1;//Needs to be minus 7 for pages to load properly.
 			refreshPages();
 		}
 	}
 
-	///////////////////////////////////////////
-	//Reverses the Array for Manga mode.
+	private int getIdealPageWidth(Image[] images){
+		int width = 0;
+		for(Image image: images){
+			BufferedImage img = (BufferedImage)image;
+			int iw = img.getWidth();
+			if(!isLandscape(img) && iw>width){
+				width = iw;
+			}
+		}
+		return width;
+	}
+	
+	private Image[] generatePages(Image[] images, boolean doublePages, boolean rightToLeft){
+		List<Image> tmp = new ArrayList<Image>(images.length);
+		if(rightToLeft){
+			images = this.reverseArray(images);
+		}
+		BufferedImage cover = (BufferedImage)images[0];
+		if(doublePages && isLandscape(cover)){//"Wraps" the cover around the book.
+			tmp.add(cover.getSubimage(0, 0, cover.getWidth()/2, cover.getHeight()));
+			cover = cover.getSubimage(cover.getWidth()/2,0,cover.getWidth()/2,cover.getHeight());;
+		}
+		else{
+			tmp.add(cover);
+			cover = null;
+		}
+		for(int i = 1; i<images.length; i++){
+			BufferedImage img = (BufferedImage)images[i];
+			if(doublePages && this.isLandscape(img)){
+				boolean blankPageNeeded = ((i)%2 == 0);
+				if(blankPageNeeded){
+					tmp.add(this.getBlankPage(img.getWidth(),img.getHeight()));
+				}
+				BufferedImage imgLeft = 
+						img.getSubimage(0, 0, img.getWidth()/2, img.getHeight());
+				BufferedImage imgRight = 
+						img.getSubimage(img.getWidth()/2,0,img.getWidth()/2,img.getHeight());
+				tmp.add(imgLeft);
+				tmp.add(imgRight);
+			}
+			else{
+				tmp.add(img);
+			}
+		}
+		if(cover != null){//Adds the back of the book.
+			tmp.add(cover);
+		}
+		tmp.removeAll(Collections.singleton(null));//Removes null entries
+		Image[] out = new Image[tmp.size()];
+		tmp.toArray(out);
+		return out;
+	}
+	
+	/////////////////////////////////////
+	//Reverses the Array for Manga mode//
+	/////////////////////////////////////
 	private String[] reverseArray(String[] in){
 		String[] out = new String[in.length];
 		for(int i = 0; i<in.length; i++){
@@ -225,7 +281,17 @@ public class JBookPanel extends JComponent
 		assert(out[0].equals(in[in.length-1]));
 		return out;
 	}
-		
+	
+	private Image[] reverseArray(Image[] in){
+		Image[] out = new Image[in.length];
+		for(int i = 0; i<in.length; i++){
+			out[in.length-1-i] = in[i];
+		}
+		assert(out.length == in.length);
+		assert(out[0].equals(in[in.length-1]));
+		return out;
+	}
+	
 	///////////////////////////////////////////////////////
 	//Performs basic initiation common to all constructors/
 	///////////////////////////////////////////////////////
@@ -281,8 +347,8 @@ public class JBookPanel extends JComponent
 		g.setColor(this.getBackground());
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		
-		//Scales the Image\
-		formatBook(.75,.75);
+		//Scales the Image
+		scaleBook();
 		
 		// page 1
 		paintPage(g2, currentLeftImage, bookBounds.x, bookBounds.y, pageWidth, bookBounds.height, this, false);
@@ -652,23 +718,27 @@ public class JBookPanel extends JComponent
 		g.fillRect(x, y, w, h);
 		g.setColor(oldColor);
 
-		boolean proportionate = false;//Disabled for debugging
 		if(proportionate){
 			int iw = img.getWidth(panel);
 			int ih = img.getHeight(panel);
-
-			//Keeps Image Proportionate
+			
+			//Keeps Image Proportioned
 			if (iw * h < ih * w) {
 				iw = (h * iw) / ih;
-				if(!rightPage){
-					x= x+pageWidth-iw;
-				}
-				//x += (w - iw) / 2;
 				w = iw;
 			} else {
 				ih = (w * ih) / iw;
 				y += (h - ih) / 2;
 				h = ih;
+			}
+			
+			boolean shouldShift = !rightPage;
+			if(leftPageTurn && img != currentRightImage && img != currentLeftImage){
+				shouldShift = !shouldShift;
+				//When the page is turned, the boolean needs to be inverted.
+			}
+			if(shouldShift){
+				x = x + pageWidth - w;//Centers the image in the middle of the Spine.
 			}
 		}
 		
@@ -1114,7 +1184,9 @@ public class JBookPanel extends JComponent
 		// if request goes beyond available pages return null
 		else if (index > nrOfPages) {
 			// if back of existing page then return a blank
-			if ( (index - 1) % 2 == 0) {
+			boolean isBack = ((index - 1) % 2 == 0);
+			isBack = rightToLeft? !isBack: isBack;
+			if (isBack) {
 				return getBlankPage(index);
 			} else {
 				return null;
@@ -1262,22 +1334,46 @@ public class JBookPanel extends JComponent
 		refreshPages();
 	}
 	
+	/**
+	 * Set a scale factors to automatically rescale the book size relative to the component.
+	 * Alternatively, set both values to -1 to disable this feature.
+	 * 
+	 * <p>Example: setBookScale(.75, .75) will make the book occupy 3/4 of the components.
+	 * 
+	 * @param hScale The factor you want to scale the height of the book to relative to the component
+	 * @param wScale The factor you want to scale the width of the book to relative to the component
+	 */
+	public void setBookScale(double hScale, double wScale){
+		this.hScale = hScale;
+		this.wScale = wScale;
+	}
+	
+	public double getBookScaleHeight(){
+		return hScale;
+	}
+	
+	public double getBookScaleWidth(){
+		return wScale;
+	}
+	
 	//////////////////////
 	//Formatting Methods//
 	//////////////////////
 	
 	protected void centerBook(){
-		bookBounds.setRect(this.getWidth()/2-bookBounds.width/2,this.getHeight()/2 - bookBounds.height/2, 
-				bookBounds.width, bookBounds.height);
+		bookBounds.setRect(this.getWidth()/2-bookBounds.width/2,this.getHeight()/2 
+				- bookBounds.height/2, bookBounds.width, bookBounds.height);
 	}
 
-	protected void formatBook(double hScale, double wScale){
-		bookBounds.width = (int)(this.getWidth()*hScale+.5);
-		bookBounds.height = (int)(this.getHeight()*wScale+.5);
+	protected void scaleBook(){
+		if(!(hScale>=0 && wScale>=0)){
+			return;
+		}
+		bookBounds.height = (int)(this.getHeight()*hScale+.5);
 		this.pageWidth = bookBounds.width/2;
 		centerBook();
 	}
-
+	
 	protected boolean isLandscape(Image img){
 		BufferedImage bImg = (BufferedImage)img;
 		return bImg.getWidth()>bImg.getHeight();

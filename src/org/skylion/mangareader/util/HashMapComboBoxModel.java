@@ -33,8 +33,11 @@ Serializable {
 	
 	private LinkedHashMap<K,V> data;
 	
+	private int prevSize;
+	
 	public HashMapComboBoxModel(LinkedHashMap<K,V> data){
 		this.data = data;
+		prevSize = data.size();
 	}
 	
 	@Override
@@ -45,8 +48,12 @@ Serializable {
 
 	@Override
 	public int getSize() {
-		contentsUpdated();//Hacky way to make sure the List is up to date.
-		return data.size();
+		int size = data.size();
+		if(size != prevSize){
+			contentsUpdated();//Hacky way to make sure the List is up to date.
+			prevSize = size;
+		}
+		return size;
 	}
 
 	@Override
