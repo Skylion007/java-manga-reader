@@ -32,6 +32,8 @@ import java.awt.Shape;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
@@ -153,12 +155,14 @@ public class JBookPanel extends JComponent
 			13, 210, 342);
 		setMargins(70, 80);
 	}
-
-	public JBookPanel(String[] URLs, MangaEngine mangaEngine) throws IOException{
+	
+	public JBookPanel(String[] URLs, MangaEngine mangaEngine, boolean doublePages,
+			boolean rightToLeft) throws IOException{
 		super();
 		init();
 		this.mangaEngine = mangaEngine;
-		loadPages(URLs, true, true);
+		this.setBookScale(.75, .75);
+		loadPages(URLs, doublePages, rightToLeft);
 		setMargins(70, 80);
 	}
 	
@@ -168,7 +172,6 @@ public class JBookPanel extends JComponent
 		pages = generatePages(images, doublePages, rightToLeft);
 		this.nrOfPages = pages.length - 1;
 		setMargins(70, 80);
-		scaleBook();
 		refreshPages();
 	}
 	
@@ -212,8 +215,11 @@ public class JBookPanel extends JComponent
 		this.nrOfPages = pages.length+3;
 		if(rightToLeft){
 			leftPageIndex = pages.length-1;//Needs to be minus 7 for pages to load properly.
-			refreshPages();
 		}
+		else{
+			leftPageIndex = 0;
+		}
+		refreshPages();
 	}
 
 	private int getIdealPageWidth(Image[] images){
@@ -221,6 +227,7 @@ public class JBookPanel extends JComponent
 		for(Image image: images){
 			BufferedImage img = (BufferedImage)image;
 			int iw = img.getWidth();
+			iw = iw * bookBounds.height / img.getHeight();
 			if(!isLandscape(img) && iw>width){
 				width = iw;
 			}
@@ -233,19 +240,10 @@ public class JBookPanel extends JComponent
 		if(rightToLeft){
 			images = this.reverseArray(images);
 		}
-		BufferedImage cover = (BufferedImage)images[0];
-		if(doublePages && isLandscape(cover)){//"Wraps" the cover around the book.
-			tmp.add(cover.getSubimage(0, 0, cover.getWidth()/2, cover.getHeight()));
-			cover = cover.getSubimage(cover.getWidth()/2,0,cover.getWidth()/2,cover.getHeight());;
-		}
-		else{
-			tmp.add(cover);
-			cover = null;
-		}
-		for(int i = 1; i<images.length; i++){
+		for(int i = 0; i<images.length; i++){
 			BufferedImage img = (BufferedImage)images[i];
 			if(doublePages && this.isLandscape(img)){
-				boolean blankPageNeeded = ((i)%2 == 0);
+				boolean blankPageNeeded = (i>0 && i%2 == 0);
 				if(blankPageNeeded){
 					tmp.add(this.getBlankPage(img.getWidth(),img.getHeight()));
 				}
@@ -259,9 +257,6 @@ public class JBookPanel extends JComponent
 			else{
 				tmp.add(img);
 			}
-		}
-		if(cover != null){//Adds the back of the book.
-			tmp.add(cover);
 		}
 		tmp.removeAll(Collections.singleton(null));//Removes null entries
 		Image[] out = new Image[tmp.size()];
@@ -319,6 +314,16 @@ public class JBookPanel extends JComponent
 			public void actionPerformed(ActionEvent e) {
 				previousPage();
 			}});
+		this.addComponentListener(new ComponentAdapter(){//Allows book to be rescaled.
+			public void componentResized(ComponentEvent ce){
+				scaleBook();
+			};
+			
+			public void componentMoved(ComponentEvent ce){
+				scaleBook();
+				refreshPages();
+			};
+		});
 
 		refreshSpeed = 25;
 		shadowWidth = 100;
@@ -346,9 +351,6 @@ public class JBookPanel extends JComponent
 		// background
 		g.setColor(this.getBackground());
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
-		
-		//Scales the Image
-		scaleBook();
 		
 		// page 1
 		paintPage(g2, currentLeftImage, bookBounds.x, bookBounds.y, pageWidth, bookBounds.height, this, false);
@@ -1106,6 +1108,8 @@ public class JBookPanel extends JComponent
 			currentRightImage = nextRightImage;
 		}
 
+		System.out.println("NOW on page:" + leftPageIndex);
+		
 		nextLeftImage = getPage(leftPageIndex + 2);
 		nextRightImage = getPage(leftPageIndex + 3);
 		previousLeftImage = getPage(leftPageIndex - 2);
@@ -1115,10 +1119,12 @@ public class JBookPanel extends JComponent
 
 	
 	protected BufferedImage getBlankPage(int index) {
-		BufferedImage img = new BufferedImage(pageWidth, bookBounds.height, BufferedImage.TYPE_3BYTE_BGR);
+		if(pageWidth<=0 || bookBounds.height <=0){
+			return null;
+		}
+		BufferedImage img = getBlankPage(pageWidth, bookBounds.height);
 		Graphics gfx = img.getGraphics();
-		gfx.setColor(Color.WHITE);
-		gfx.fillRect(0, 0, img.getWidth(), img.getHeight());
+		paintPageNumber(gfx, index, img.getWidth(), img.getHeight());
 		return img;
 	}
 	
@@ -1128,7 +1134,6 @@ public class JBookPanel extends JComponent
 		gfx.setColor(Color.WHITE);
 		gfx.fillRect(0, 0, img.getWidth(), img.getHeight());
 		return img;
-
 	}
 
 	protected void setGraphicsHints(Graphics2D g2) {
@@ -1146,25 +1151,7 @@ public class JBookPanel extends JComponent
 
 	protected Image loadPage(int index) {
 		if(pages!=null && index>=0 ){
-			if(index>=pages.length){
-				try {
-					mangaEngine.loadImg(mangaEngine.getNextPage());
-					leftPageIndex = 0;
-					loadPages(mangaEngine.getPageList(), true, true);					
-					if(pages != null){
-						this.repaint();
-						return loadPage(0);
-					}
-					else{
-						return null;
-					}
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					//Do nothing else
-				}
-			}
-			else if(pages[index] == null){
+			if(pages[index] == null){
 				return null;
 			}
 			else{
@@ -1175,14 +1162,8 @@ public class JBookPanel extends JComponent
 	}
 
 	protected Image getPage(int index) {
-		if(pages != null){
-			if(index >= 0 && index<pages.length){
-				return loadPage(index);
-			}
-			return null;
-		}
 		// if request goes beyond available pages return null
-		else if (index > nrOfPages) {
+		if (index > nrOfPages) {
 			// if back of existing page then return a blank
 			boolean isBack = ((index - 1) % 2 == 0);
 			isBack = rightToLeft? !isBack: isBack;
@@ -1191,23 +1172,24 @@ public class JBookPanel extends JComponent
 			} else {
 				return null;
 			}
-		}
-		else if (index < 1) {
+		}else if (index < 1) {
 			if (index == 0) {
 				try {
 					return loadPage(index);
 				} catch (Exception e) {
 					return getBlankPage(index);
 				}
-			} else {
-				return null;
+			} else if(index % 2 == -1){
+				return getBlankPage(index);
+			} 
+		}else if(pages!=null){
+			if(index < pages.length){
+				return loadPage(index);
 			}
-		}
-		else if (pageLocation == null 
+		}else if (pageLocation == null 
 				|| pageName == null
 				||  pageExtension == null ) {
 
-			System.out.println("THIS IS THE PROBLEM!");
 			// create the blank page
 			BufferedImage img = getBlankPage(index);// if no images specified return blank ones
 
@@ -1223,6 +1205,7 @@ public class JBookPanel extends JComponent
 			return new ImageIcon(getClass().getResource(pageLocation + pageName
 					+ index + "." + pageExtension)).getImage();
 		}
+		return null;
 	}
 
 	/////////////////////////
@@ -1239,7 +1222,7 @@ public class JBookPanel extends JComponent
 	public void setPages(int pageWidth, int pageHeight){
 		this.pageWidth = pageWidth;
 		this.bookBounds.height = pageHeight;
-		this.bookBounds.width = pageWidth;
+		this.bookBounds.width = pageWidth*2;
 	}
 
 	public void setPages(int nrOfPages, int pageWidth, int pageHeight){
@@ -1261,13 +1244,8 @@ public class JBookPanel extends JComponent
 		bookBounds.height = pageHeight;
 
 		initRotationX();
-
-		currentLeftImage = getPage(leftPageIndex);
-		currentRightImage = getPage(leftPageIndex + 1);
-		nextLeftImage = getPage(leftPageIndex + 2);
-		nextRightImage = getPage(leftPageIndex + 3);
-		previousLeftImage = getPage(leftPageIndex - 2);
-		previousRightImage = getPage(leftPageIndex - 1);
+		
+		refreshPages();
 	
 		centerBook();
 	}
@@ -1346,6 +1324,7 @@ public class JBookPanel extends JComponent
 	public void setBookScale(double hScale, double wScale){
 		this.hScale = hScale;
 		this.wScale = wScale;
+		scaleBook();
 	}
 	
 	public double getBookScaleHeight(){
@@ -1354,6 +1333,25 @@ public class JBookPanel extends JComponent
 	
 	public double getBookScaleWidth(){
 		return wScale;
+	}
+	
+//	public void setRightToLeft(boolean rightToLeft){
+//		if(this.rightToLeft != rightToLeft){
+//			this.rightToLeft = rightToLeft;
+//			
+//		}
+//	}
+//	
+//	public boolean isRightToLeft(){
+//		return this.rightToLeft;
+//	}
+	
+	public void setUseImageProprotions(boolean proportionate){
+		this.proportionate = proportionate;
+	}
+	
+	public boolean usesImageProportions(){
+		return this.proportionate;
 	}
 	
 	//////////////////////
@@ -1366,11 +1364,24 @@ public class JBookPanel extends JComponent
 	}
 
 	protected void scaleBook(){
-		if(!(hScale>=0 && wScale>=0)){
+		if(!(hScale>0 && wScale>0)){
 			return;
 		}
-		bookBounds.height = (int)(this.getHeight()*hScale+.5);
-		this.pageWidth = bookBounds.width/2;
+		int h = getHeight();
+		int w = getWidth(); 
+		if(w<=0 || h<=0){//Having this value be zero will cause problems
+			h = this.getPreferredSize().height;
+			w = this.getPreferredSize().width;
+		}
+		bookBounds.height = (int)(h*hScale+.5);
+		bookBounds.width = (int)(w*wScale+.5);
+		if(proportionate && pages!=null){
+			this.pageWidth = getIdealPageWidth(pages);
+			bookBounds.width = pageWidth*2;
+		}
+		else{
+			this.pageWidth = bookBounds.width/2;
+		}
 		centerBook();
 	}
 	
