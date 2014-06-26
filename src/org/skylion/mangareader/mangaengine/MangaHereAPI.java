@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.skylion.mangareader.util.Logger;
+import org.skylion.mangareader.util.MangaUtil;
 import org.skylion.mangareader.util.StringUtil;
 
 /**
@@ -295,7 +296,6 @@ public class MangaHereAPI implements MangaEngine{
 	 */
 	private String getFirstChapter(String mangaURL) throws IOException{
 		Document doc = Jsoup.connect(mangaURL).get();
-		System.out.println(mangaURL);
 		Element e = doc.getElementsByClass("detail_list").last();
 		Element item = e.select("a").last();
 		return item.absUrl("href");
@@ -405,13 +405,13 @@ public class MangaHereAPI implements MangaEngine{
 		String[][] out;
 		Document doc = Jsoup.connect("http://www.mangahere.com/mangalist/").timeout(10*1000).maxBodySize(0).get();
 		Elements items = doc.getElementsByClass("manga_info");
+		items = MangaUtil.removeLicensedManga(items);
 		out = new String[2][items.size()];
 		for(int i = 0; i<items.size(); i++){
 			Element item = items.get(i);
 			out[0][i] = item.text();
 			out[1][i] = item.absUrl("href");
 		}
-
 		return out;
 	}
 

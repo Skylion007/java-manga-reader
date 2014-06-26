@@ -12,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.skylion.mangareader.util.Logger;
+import org.skylion.mangareader.util.MangaUtil;
 import org.skylion.mangareader.util.StringUtil;
 
 /**
@@ -302,6 +303,7 @@ public class MangaPandaAPI implements MangaEngine{
 			for(Element miniList: bigList){
 				 names.addAll(miniList.select("li"));
 			}
+			names = MangaUtil.removeLicensedManga(names);
 			String[][] localMangaList = new String[2][names.size()];
 			for(int i = 0; i<names.size(); i++){
 				Element e = names.get(i).select("a").first();
