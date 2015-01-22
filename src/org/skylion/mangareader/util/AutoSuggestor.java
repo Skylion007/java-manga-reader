@@ -272,7 +272,14 @@ public class AutoSuggestor {
     private void setFocusToTextField() {
     	container.toFront();
     	container.requestFocusInWindow();
-    	textField.requestFocusInWindow();
+		textField.setFocusable(true);
+		textField.setRequestFocusEnabled(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			void run() {
+				textField.requestFocusInWindow();
+				textField.requestFocus();
+			}
+		});	
     }
 
     public List<SuggestionLabel> getAddedSuggestionLabels() {
